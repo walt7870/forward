@@ -170,6 +170,11 @@ public class ForwardController {
         // 解析响应，获取用户添加的人脸数并记录日志
         if(HttpUploadFile.status!=200)
             return reply;
+        if(reply.contains("\"galleries\": [\"default\"]")){
+            response.setStatus(500);
+            ErrorPrompt.addInfo("error","add face failed");
+            return ErrorPrompt.getJSONInfo();
+        }
         JSONParser jsonParser = new JSONParser();
         JSONArray results = (JSONArray) ((JSONObject)jsonParser.parse(reply)).get("results");
         int addFace = results.size();
