@@ -429,7 +429,7 @@
                     <!--中间搜索结果-->
                     <!--左侧结果图片-->
                     <div class="code_box4">
-                        <div class="code_title4">
+                        <div class="results_title4">
                             &nbsp;&nbsp;搜索结果
                         </div>
                         <div id="resultShowSearchDemo" class="code_text4">

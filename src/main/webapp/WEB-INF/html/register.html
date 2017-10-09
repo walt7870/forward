@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>注册</title>
-		<link href="favicon.ico" rel="shortcut icon" type="image/x-icon" />
+		<link href="../favicon.ico" rel="shortcut icon" type="image/x-icon" />
 		<link rel="stylesheet" href="../css/registration.css" />
         <!--<link rel="stylesheet" type="text/css" href="../css/bootstrap.css">-->
 		<script type="text/javascript" src="../js/lib/jquery.min.js" ></script>
@@ -17,11 +17,11 @@
 			<div class="right_login">
 				<div class="catchphrase">
 					<!--<h2>恩钛智能</h2>-->
-					<a href="../"><h2><img height="40" width="80" src="../img/logo1.png"></h2></a>
+					<a href="../"><h2><img height="40" width="80" src="../img/login/logo_2.png"></h2></a>
 					<label>领先世界的深度学习技术</label>
 					<label class="segmentation"></label>
 				</div>
-				<form class="registration_box" action="commitReg" method="post">
+				<div class="registration_box">
 					<div class="left_text">
 						<div class="results_text">用户名:</div>
 						<div class="results_text">密码:</div>
@@ -54,17 +54,10 @@
 
 					</div>
 
-				    <input class="btn_registration" id="send" type="submit" value="注册">
+					<button class="btn_registration" id="send" type="submit" value="注册">注册</button>
 				    <div class="a_login">已有账号？<a class="registration" href="login">立即登录</a></div>
-				</form>
+				</div>
 			</div>
 		</div>
 	</body>
-    <script type="text/javascript">
-//    	$(function(){
-//    		$(".btn_registration").click(function(){
-//			    window.location.href="login.html";
-//			})
-//    	})
-    </script>
 </html>

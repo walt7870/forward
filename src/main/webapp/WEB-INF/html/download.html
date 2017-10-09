@@ -116,10 +116,13 @@
 </head>
 <body>
 	<div class="max_img">
-		<img src="../img/showcasing.png" />
+		<!--<img src="../img/showcasing.png" />-->
 	</div>
 	<div class="company_text">恩钛</div>
 	<div class="title_text">开启全新时代</div>
+	<div>
+		<img src="../img/apk.png">
+	</div>
 	<div id="download" class="btn_box"  onclick='download()'>立即下载</div>
 <!--<p> 恩钛人脸识别app下载 </p>
 
@@ -146,9 +149,9 @@
     function download() {
         var isiOS = !!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
         if (isiOS) {
-            window.location.href = "itms-services://?action=download-manifest&url=https://raw.githubusercontent.com/coderzhao/ionic/master/app.plist";
+            window.location.href = "http://yun.anytec.cn/img/ntechFace.apk";
         } else {
-            window.location.href = "https://raw.githubusercontent.com/coderzhao/ionic/master/android-debug.apk";
+            window.location.href = "http://yun.anytec.cn/img/ntechFace.apk"
         }
     }
     //http://88.128.18.144:7777/app/eguardian/downloadSales

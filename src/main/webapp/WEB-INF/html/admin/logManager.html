@@ -59,8 +59,20 @@
     <table id="tb_departments"></table>
 </div>
 <script>
-    $("#btn_query").click(function () {
-        $("#tb_departments").bootstrapTable("refresh")
+    $("#btn_query").click(function (params) {
+        var opt = {
+            url: "/admin/findLogs",
+            silent: true,
+            query:{
+                limit: params.limit,   //页面大小
+                offset: 0,  //页码
+                "name": $("#name").val(),
+                "type":$("#type").val(),
+                "start":$("#start").val(),
+                "over":$("#end").val()
+            }
+        };
+        $("#tb_departments").bootstrapTable("refreshOptions",opt)
 
     });
     $(function () {

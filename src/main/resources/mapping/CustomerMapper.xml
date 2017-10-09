@@ -258,7 +258,10 @@
 
 
   <select id="findPage" resultMap="BaseResultMap">
-    select * from customer limit #{offset},#{limit}
+
+    select * from customer
+      where  contype != "1"
+    limit #{offset},#{limit}
   </select>
   <select id="findLikeName" parameterType="java.lang.String" resultMap="BaseResultMap">
     SELECT  * from customer where name LIKE #{name}

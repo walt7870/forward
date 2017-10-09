@@ -34,6 +34,9 @@ public class CustomerService implements ICustomerService {
 
     @Autowired
     ISetMealService setMealService;
+
+    @Autowired
+    IShowManage showManage;
 //    @Autowired
 //    IShowManage showManage;
 
@@ -65,6 +68,11 @@ public class CustomerService implements ICustomerService {
         CustomerExample example = new CustomerExample();
         example.createCriteria().andNameEqualTo(name);
         if (customerMapper.deleteByExample(example) == 1) {
+            try {
+                showManage.deleteGallery(name);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             logger.info("delete customer succeess");
             return true;
         }

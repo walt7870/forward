@@ -76,6 +76,7 @@ public class CustomerController {
         logger.info("commit appregister");
         Customer customer = new Customer();
         customer.setName(name);
+        customer.setContype("0");
         customer.setPassword(SHAencrypt.encryptSHA(password));
         customer.setEmail(email);
         try {
@@ -99,6 +100,7 @@ public class CustomerController {
         Customer customer = new Customer();
         customer.setName(name);
         customer.setFaceNumber(0);
+        customer.setContype("0");
         customer.setPassword(SHAencrypt.encryptSHA(password));
         customer.setEmail(email);
         try {
@@ -467,6 +469,28 @@ public class CustomerController {
         return null;
 
     }
+    //在用户库中的人脸做搜索,如果session中的用户名不存在则则demo_defalut库中搜索
+    @RequestMapping("getDemoAllFace")
+    @ResponseBody
+    public JSONArray getDemoSearchAllFace(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+        String name = (String) session.getAttribute("name");
+        String result = null;
+        if (null != name && !"".equals(name)) {
+            request.setAttribute("localAPI", "/v0/faces/gallery/" + name + "/identify");
+        } else {
+            request.setAttribute("localAPI", "/v0/faces/gallery/demo_default/identify");
+        }
+        result = MethodUtil.getInstance().requestForward(request, response);
+        if (null != result && !"".equals(result)) {
+            //暂定方案是获取sdk服务器上的图片信息用于展示,后续再考虑优化方案.
+//            return result.replaceAll("http://127.0.0.1:3333/uploads", "http://192.168.10.208:3333/uploads");
+            return wrapResponseForSearchAll(result);
+        }
+
+
+        return null;
+
+    }
 
 
     //通过用户名来获取图库信息,如果session中没有用户名则获取demo_default库中的用户名
@@ -696,6 +720,52 @@ public class CustomerController {
         return result;
     }
 
+    private JSONArray wrapResponseForSearchAll(String result) {
+        JSONObject jsonResult = null;
+        JSONArray jsonArrayResult = new JSONArray();
+        try {
+            logger.info(result);
+            jsonResult = (JSONObject) new JSONParser().parse(result);
+            JSONObject jsonResult1 = (JSONObject) jsonResult.get("results");
+//            jsonArray=jsonResult1.;
+            JSONArray jsonArrayFace=null;
+            for(Object key:jsonResult1.keySet()){
+                JSONObject finalSingle = new JSONObject();
+                jsonArrayFace= (JSONArray) jsonResult1.get(key);
+                if(jsonArrayFace.size()==0){
+                    continue;
+                }
+                for (int i = 0; i < jsonArrayFace.size(); i++) {
+                    JSONObject tmpJson = (JSONObject) jsonArrayFace.get(i);
+                    JSONObject tmpJson1 = (JSONObject) tmpJson.get("face");
+                    String confidence=tmpJson.get("confidence")+"";
+                    String tmpStrng = (String) tmpJson1.get("normalized");
+//                String photo = (String) tmpJson.get("photo");
+//                String thumbnail = (String) tmpJson.get("thumbnail");
+                    tmpStrng = "http://192.168.10.208" + tmpStrng.substring(16);
+                    String picBase64=PictureShow.getInstance().getBase64Picture(tmpStrng);
+//                String picBase64 = "http://192.168.10.208" + tmpStrng.substring(16);
+                    JSONObject objectTemp=(JSONObject) jsonArrayFace.get(i);
+                    tmpJson1.remove("normalized");
+                    tmpJson1.remove("photo");
+                    tmpJson1.remove("thumbnail");
+                    tmpJson1.put("normalized", picBase64);
+                    tmpJson1.put("photo", "photoUrl");
+                    tmpJson1.put("thumbnail", "thumbnailUrl");
+
+                    finalSingle.put("confidence",confidence);
+                    finalSingle.put("face",tmpJson1);
+                    finalSingle.put("box",key);
+                }
+                jsonArrayResult.add(finalSingle);
+            }
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return jsonArrayResult;
+    }
     //包装返回的请求
     private JSONArray wrapResponseForSearch(String result) {
         JSONObject jsonResult = null;

@@ -16,7 +16,7 @@ $(function() {
     //     $(this).parent().append($required); // 然后将它追加到文档中
     // });
     // 文本框失去焦点后
-    $('form :input').blur(function() {
+    $('input').blur(function() {
         var $parent = $(this).parent();
         $parent.find(".formtips").remove();
 
@@ -24,10 +24,8 @@ $(function() {
         if ($(this).is('#userName')) {
             if (this.value == "" ||this.value != "" && !/^([a-zA-Z0-9_]{6,20})$/.test(this.value)) {
                 var errorMsg = '用户名由6位以上数字、字母或下划线组成';
-                $parent.addClass("has-error");
                 $parent.append('<span class="formtips onError">' + errorMsg + '</span>');
             }else {
-
                 $.ajax({
                     url : 'check',
                     type : 'POST',
@@ -98,30 +96,50 @@ $(function() {
     // 提交，最终验证。
 
     $('#send').click(function() {
-        // $('input').trigger("blur");
-        var flag= false
+        $('input').trigger("blur");
         if($('#authCode').val()==''){
             $('#codeMsg').text("验证码不能为空");
             return false;
         }
-        // $('input').each(function () {
-        //     $(this).triggerHandler("blur");
-        // })
 
         $.ajax({
             url : 'checkCode',
             type : 'POST',
-            data : {authCode:$('#authCode').val()},
-            async: false,
-            dataType : 'json',
+            data : {"authCode":$('#authCode').val()},
+            async: true,
+            // dataType : 'json',
             success : function(data) {
                 if(!data){
                     $('#codeMsg').text("验证码错误");
-                    flag=false;
+                    return false;
                 }else{
                     $('#codeMsg').text("");
-                    flag=true;
+                    $('input').trigger("blur");
+                    // $("form :input.required").trigger('blur');
+                    var numError = $('.onError').length;
+                    if (numError) {
+                        return false;
+                    };
+                    $.ajax({
+                        url : 'appCommitReg',
+                        type : 'POST',
+                        data : {name:$('#userName').val(),password:$('#userPassword').val(),email:$('#email').val()},
+                        async: true,
+                        // dataType : 'json',
+                        success : function(data) {
+                            if(data){
+                                alert("注册成功");
+                                window.location.href="login";
+                            }else{
+                                alert("注册失败")
+                            }
+                        }
+                    })
                 }
+            },
+            error:function () {
+                $('#codeMsg').text("验证码验证出错");
+                return false;
             }
         });
 
@@ -130,13 +148,7 @@ $(function() {
         //     console.log($(this).trigger('blur'));
         //     // $(this).triggerHandler("blur");
         // })
-        $('input').trigger("blur");
-        // $("form :input.required").trigger('blur');
-        var numError = $('.onError').length;
-        if (numError) {
-            flag=false
-        }
-        return flag;
+
     });
 
 
