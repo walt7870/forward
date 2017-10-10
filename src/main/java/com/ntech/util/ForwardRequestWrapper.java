@@ -10,6 +10,13 @@ import com.ntech.exception.ErrorTokenException;
 import com.ntech.exception.IllegalAPIException;
 import com.ntech.forward.Constant;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * request请求包装类
  * Token验证
@@ -41,6 +48,28 @@ public class ForwardRequestWrapper extends HttpServletRequestWrapper {
 		request.setAttribute("userName",customer.getName());
 		request.setAttribute("customer",customer);
 		request.setAttribute("Method",request.getMethod());
+		if(request.getMethod().equals("PUT")){
+			Map<String,String> param = new HashMap<String,String>();
+			try {
+				InputStreamReader inputStreamReader = new InputStreamReader(request.getInputStream());
+				BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+				String s;
+				String key = "";
+				while((s = bufferedReader.readLine())!=null){
+					if(s.contains("Content-Disposition: form-data")) {
+						key = s.substring(38, s.length() - 1);
+						param.put(key, null);
+						continue;
+					}
+					if(s.equals("")||s.startsWith("----"))
+						continue;
+					param.put(key,s);
+				}
 
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			request.setAttribute("PUT_PARAM",param);
+		}
 	}
 }

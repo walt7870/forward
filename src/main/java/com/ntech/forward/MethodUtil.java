@@ -2,6 +2,8 @@ package com.ntech.forward;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -88,14 +90,10 @@ public class MethodUtil {
 					if (item.isFormField()) {
 						//文本
 						String filedName = item.getFieldName();
-						String value;
+						String value = item.getString();
 						logger.info(item.getString("utf-8"));
-						if(item.getString().equals(new String(item.getString().getBytes("iso-8859-1"), "iso-8859-1"))) {
-							logger.info("PARAM_CHARSET: iso-8859-1");
-							value = new String(item.getString().getBytes("iso-8859-1"),"utf-8");
-						}else{
-							value = item.getString("utf-8");
-						}
+						value = URLEncoder.encode(value,"iso-8859-1");
+						value = URLDecoder.decode(value,"utf-8");
 						if (filedName.startsWith("galleries")) {
 							logger.info("inputGaleries :" + value);
 							StringBuilder galleryValue = new StringBuilder();
