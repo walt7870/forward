@@ -1014,7 +1014,7 @@ function searchReqDemo(img) {
             success: function (data) {
                 if(data==""||data.length==0){
                     $('#reponseSearchDemo').html("")
-                    $('#searchResultDemo').html("图库中未搜索相似人脸")
+                    $('#searchResultDemo').html("请调小阀值再进行搜索")
                     $('#resultShowSearchDemo').html("")
                     return false;
                 }

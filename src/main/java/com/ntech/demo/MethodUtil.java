@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.*;
 
 public class MethodUtil {
@@ -46,7 +48,6 @@ public class MethodUtil {
 	public String requestForward(HttpServletRequest request,
 			HttpServletResponse response)  {
 		logger.info("*************START***********");
-		logger.info(request.getParameter("test"));
 		String SDKreply="";
 		String meta = "no";
 		String API = (String) request.getAttribute("API");
@@ -77,8 +78,9 @@ public class MethodUtil {
 					FileItem item = iterator.next();
 					if(item.isFormField()) {
 						String filedName = item.getFieldName();
-						String value = new String(item.getString().getBytes("iso-8859-1"));
-						if(filedName.equals("galleries")||filedName.equals("gallery")) {
+						String value=item.getString("utf-8");
+                        System.out.printf(value);
+                        if(filedName.equals("galleries")||filedName.equals("gallery")) {
 							logger.info("inputGaleries :"+value);
 							filedName = "galleries";
 							boolean existGallery = false;
@@ -141,7 +143,7 @@ public class MethodUtil {
 				ErrorPrompt.addInfo("error", "bad_gallery");
 				e.printStackTrace();
 				return null;
-			} 
+			}
 		}
 		//获取表单文本数据
 		Enumeration<String> enumeration = request.getParameterNames();

@@ -33,43 +33,66 @@ $(document).ready(function () {
 
             },
             myLibUploadInput: function () {
-
+                var regEn = /[`~!@#$%^&*()+<>?:"{},.\/;'[\]]/im
+                var regCn = /[·！#￥（——）：；“”‘、，|《。》？、【】[\]]/im;
                 var fileContent = document.getElementById('myLibUpload')
-                var file = fileContent.files[0];
-                if (!file) {
+                var metaName= prompt("请输入人脸名称:");
+                if(metaName == null ||metaName == ''){
+                    alert("名称不能未空");
+                    fileContent.value = "";
                     return false;
-                }
-                var formData = new FormData();
-                formData.append("photo", file)
-                fileContent.value = "";
-                $.ajax({
-                    url: 'addToGallery',
-                    type: 'POST',
-                    dataType: "json",
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    async: true,
-                    success: function (data) {
-                        // console.log(data)
-//                        dataObj = eval(data.results);
-                        if(data==0){
-                            alert("个人人脸数量已达到上限");
-                            return false;
-                        }
-                        if($('#picPreload')){
-                            $('#picPreload').remove()
-                        }
-
-                        app.todos = data;
-                        // width();
-
-                    },
-                    error: function (data) {
-                        alert("未检查到人脸或图片格式不符")
-                        return false
+                }else if(regEn.test(metaName) || regCn.test(metaName)){
+                    alert("名称不能包含特殊字符.");
+                    fileContent.value = "";
+                    return false;
+                }else if(metaName.trim()==""){
+                    alert("名称不能全是空格");
+                    fileContent.value = "";
+                    return false;
+                }else if(metaName.length>20){
+                    alert("名称长度必须大于1小于20");
+                    fileContent.value = "";
+                    return false;
+                } else{
+                    var file = fileContent.files[0];
+                    if (!file) {
+                        return false;
                     }
-                });
+                    var formData = new FormData();
+                    formData.append("photo", file);
+                    formData.append("meta",metaName);
+                    // formData.append("mf_selector","all");
+                    fileContent.value = "";
+                    $.ajax({
+                        url: 'addToGallery',
+                        type: 'POST',
+                        dataType: "json",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        async: true,
+                        success: function (data) {
+                            // console.log(data)
+//                        dataObj = eval(data.results);
+                            if(data==0){
+                                alert("个人人脸数量已达到上限");
+                                return false;
+                            }
+                            if($('#picPreload')){
+                                $('#picPreload').remove()
+                            }
+
+                            app.todos = data;
+                            // width();
+
+                        },
+                        error: function (data) {
+                            alert("未检查到人脸或图片格式不符")
+                            return false
+                        }
+                    });
+                }
+
             },
 
 
@@ -135,33 +158,50 @@ $(document).ready(function () {
                     alert("url不能为空")
                     return false
                 } else {
-                    var formData = new FormData();
-                    formData.append("photo", app.myLibUrl)
-                    $.ajax({
-                        url: 'addToGallery',
-                        type: 'POST',
-                        dataType: "json",
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        async: true,
-                        success: function (data) {
-                            if(data==0){
-                                alert("个人人脸数量已达到上限");
-                                return false;
-                            }
-                            if($('#picPreload')){
-                                $('#picPreload').remove()
-                            }
-                            app.todos = data;
+                    var regEn = /[`~!@#$%^&*()+<>?:"{},.\/;'[\]]/im
+                    var regCn = /[·！#￥（——）：；“”‘、，|《。》？、【】[\]]/im;
+                    var metaName= prompt("请输入人脸名称:");
+                    if(metaName == null ||metaName == ''){
+                        alert("名称不能未空");
+                        return false;
+                    }else if(regEn.test(metaName) || regCn.test(metaName)){
+                        alert("名称不能包含特殊字符.");
+                        return false;
+                    }else if(metaName.trim()==""){
+                        alert("名称不能全是空格");
+                        return false;
+                    }else if(metaName.length>20){
+                        alert("名称长度必须大于1小于20");
+                        return false;
+                    } else {
+                        var formData = new FormData();
+                        formData.append("photo", app.myLibUrl)
+                        formData.append("meta", metaName)
+                        $.ajax({
+                            url: 'addToGallery',
+                            type: 'POST',
+                            dataType: "json",
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            async: true,
+                            success: function (data) {
+                                if (data == 0) {
+                                    alert("个人人脸数量已达到上限");
+                                    return false;
+                                }
+                                if ($('#picPreload')) {
+                                    $('#picPreload').remove()
+                                }
+                                app.todos = data;
 
-                        },
-                        error: function (data) {
-                            alert("未检查到人脸或图片格式不符")
-                            return false
-                        }
-                    });
-
+                            },
+                            error: function (data) {
+                                alert("未检查到人脸或图片格式不符")
+                                return false
+                            }
+                        });
+                    }
                 }
             },
 
