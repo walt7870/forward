@@ -85,9 +85,7 @@ public class PictureShow {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (baos != null) {
 					baos.close();
-				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
