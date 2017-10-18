@@ -527,6 +527,12 @@ body{
 	top: -6px;
 	right: -6px;
 }
+.metaDiv{
+	position: absolute;
+    top:-3px;
+    overflow: hidden;
+	color:#3abfb5;
+}
 .delete_icon img{
 	width: 100%;
 }

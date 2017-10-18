@@ -79,7 +79,6 @@ public class MethodUtil {
 					if(item.isFormField()) {
 						String filedName = item.getFieldName();
 						String value=item.getString("utf-8");
-                        System.out.printf(value);
                         if(filedName.equals("galleries")||filedName.equals("gallery")) {
 							logger.info("inputGaleries :"+value);
 							filedName = "galleries";

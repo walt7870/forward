@@ -77,6 +77,7 @@ public class CustomerController {
         Customer customer = new Customer();
         customer.setName(name);
         customer.setContype("0");
+        customer.setFaceNumber(0);
         customer.setPassword(SHAencrypt.encryptSHA(password));
         customer.setEmail(email);
         try {
@@ -92,7 +93,7 @@ public class CustomerController {
     public ModelAndView register(@RequestParam("name") String name, String password, String email) {
         ModelAndView mav = new ModelAndView("msg");
         if (null == name || "".equals(name) || null == password || "".equals(password) || null == email || "".equals(email)) {
-            mav.addObject("msg", "注册信息有无，请重启填写");
+            mav.addObject("msg", "注册信息有误，请重新填写");
             return mav;
         }
 
@@ -357,7 +358,7 @@ public class CustomerController {
             if (meal.getContype().equals("date")) {
                 //计算剩余天数
                 int leftDay = (int) ((meal.getEndTime().getTime() -
-                        meal.getBeginTime().getTime()) / (1000 * 3600 * 24));
+                        new Date().getTime()) / (1000 * 3600 * 24));
                 if(leftDay<0){leftDay=0;}
                 session.setAttribute("leftDay", leftDay);
             }
@@ -460,8 +461,6 @@ public class CustomerController {
         }
         result = MethodUtil.getInstance().requestForward(request, response);
         if (null != result && !"".equals(result)) {
-            //暂定方案是获取sdk服务器上的图片信息用于展示,后续再考虑优化方案.
-//            return result.replaceAll("http://127.0.0.1:3333/uploads", "http://192.168.10.208:3333/uploads");
             return wrapResponseForSearch(result);
         }
 
@@ -482,8 +481,6 @@ public class CustomerController {
         }
         result = MethodUtil.getInstance().requestForward(request, response);
         if (null != result && !"".equals(result)) {
-            //暂定方案是获取sdk服务器上的图片信息用于展示,后续再考虑优化方案.
-//            return result.replaceAll("http://127.0.0.1:3333/uploads", "http://192.168.10.208:3333/uploads");
             return wrapResponseForSearchAll(result);
         }
 
@@ -528,11 +525,22 @@ public class CustomerController {
             }
             request.setAttribute("personFaceInsert", name);
             result = MethodUtil.getInstance().requestForward(request, response);
-            if (result != null) {
+            JSONObject tmpResultObj=null;
+            try {
+                tmpResultObj= (JSONObject) new JSONParser().parse(result);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            if (tmpResultObj != null&&tmpResultObj.get("results")!=null) {
+                JSONArray faceNumArray= (JSONArray) tmpResultObj.get("results");
                 //添加后获取最新的图片列表
+                int faceNumber=1;
+                if(null!=faceNumArray&&faceNumArray.size()>0){
+                    faceNumber=faceNumArray.size();
+                    customerService.operateFaceNumber(name,1,faceNumber);
+                    result = getMyGalleryLocal(name);
+                }
 
-                customerService.operateFaceNumber(name,1,1);
-                result = getMyGalleryLocal(name);
 
             }
             return wrapResponse(result).toJSONString();
@@ -727,7 +735,6 @@ public class CustomerController {
             logger.info(result);
             jsonResult = (JSONObject) new JSONParser().parse(result);
             JSONObject jsonResult1 = (JSONObject) jsonResult.get("results");
-//            jsonArray=jsonResult1.;
             JSONArray jsonArrayFace=null;
             for(Object key:jsonResult1.keySet()){
                 JSONObject finalSingle = new JSONObject();
@@ -740,11 +747,8 @@ public class CustomerController {
                     JSONObject tmpJson1 = (JSONObject) tmpJson.get("face");
                     String confidence=tmpJson.get("confidence")+"";
                     String tmpStrng = (String) tmpJson1.get("normalized");
-//                String photo = (String) tmpJson.get("photo");
-//                String thumbnail = (String) tmpJson.get("thumbnail");
-                    tmpStrng = "http://192.168.10.208" + tmpStrng.substring(16);
+//                    tmpStrng = "http://192.168.10.208" + tmpStrng.substring(16);
                     String picBase64=PictureShow.getInstance().getBase64Picture(tmpStrng);
-//                String picBase64 = "http://192.168.10.208" + tmpStrng.substring(16);
                     JSONObject objectTemp=(JSONObject) jsonArrayFace.get(i);
                     tmpJson1.remove("normalized");
                     tmpJson1.remove("photo");
@@ -774,7 +778,6 @@ public class CustomerController {
             logger.info(result);
             jsonResult = (JSONObject) new JSONParser().parse(result);
             JSONObject jsonResult1 = (JSONObject) jsonResult.get("results");
-//            jsonArray=jsonResult1.;
             JSONArray jsonArrayFace=null;
             for(Object key:jsonResult1.keySet()){
                 jsonArrayFace= (JSONArray) jsonResult1.get(key);
@@ -785,11 +788,8 @@ public class CustomerController {
                 JSONObject tmpJson1 = (JSONObject) tmpJson.get("face");
                 String confidence=tmpJson.get("confidence")+"";
                 String tmpStrng = (String) tmpJson1.get("normalized");
-//                String photo = (String) tmpJson.get("photo");
-//                String thumbnail = (String) tmpJson.get("thumbnail");
 //                tmpStrng = "http://192.168.10.208" + tmpStrng.substring(16);
                 String picBase64=PictureShow.getInstance().getBase64Picture(tmpStrng);
-//                String picBase64 = "http://192.168.10.208" + tmpStrng.substring(16);
                 JSONObject objectTemp=(JSONObject) jsonArrayFace.get(i);
                 tmpJson1.remove("normalized");
                 tmpJson1.remove("photo");
@@ -819,11 +819,8 @@ public class CustomerController {
              for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject tmpJson = (JSONObject) jsonArray.get(i);
                 String tmpStrng = (String) tmpJson.get("normalized");
-//                String photo = (String) tmpJson.get("photo");
-//                String thumbnail = (String) tmpJson.get("thumbnail");
 //                tmpStrng = "http://192.168.10.208" + tmpStrng.substring(16);
                 String picBase64=PictureShow.getInstance().getBase64Picture(tmpStrng);
-//                String picBase64 = "http://192.168.10.208" + tmpStrng.substring(16);
                 ((JSONObject) jsonArray.get(i)).put("normalized", picBase64);
                 ((JSONObject) jsonArray.get(i)).put("photo", "photoUrl");
                 ((JSONObject) jsonArray.get(i)).put("thumbnail", "thumbnailUrl");

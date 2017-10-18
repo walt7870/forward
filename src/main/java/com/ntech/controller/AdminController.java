@@ -153,6 +153,7 @@ public class AdminController {
             customer.setEmail(email);
             customer.setContype("user");
             customer.setRegtime(new Date());
+            customer.setFaceNumber(0);
             if(active.equals("active")){
                 customer.setActive(1);
             }else{
@@ -451,7 +452,7 @@ public class AdminController {
             } else if (enable.equals("enable")) {
                 setMeal.setEnable(0);
             }
-            System.out.println(setMeal.toString());
+//            System.out.println(setMeal.toString());
             setMealService.modify(setMeal);
         } catch (Exception e) {
             e.printStackTrace();

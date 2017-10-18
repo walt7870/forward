@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8" />
     <!--[if lte IE 10]><script>window.location.href='/html/browser.html'</script><![endif]-->
-    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <%--<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />--%>
     <title>恩钛</title>
     <link href="favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
