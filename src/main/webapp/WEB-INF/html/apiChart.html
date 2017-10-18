@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>api的使用</title>
+</head>
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="../js/lib/jquery-1.4.2.min.js"></script>
+
+<script src="../js/lib/highcharts.js"></script>
+<script src="../js/lib/exporting.js"></script>
+<body>
+   <div  style="width: 80%;height: 40%">
+       <div style="width: 80%;height: 15%">
+           <div  style="color: blue;font-size: 15px">API使用情况</div>
+
+
+           <div class="col-xs-2 " >
+               <button class="btn-info" id="column">查看</button></div>
+       </div>
+       <div style="display:block;height: 20%;width: 80%" id="showShape">
+
+       </div>
+   </div>
+<script>
+  $("#column").click(function () {
+      var jsonXData = [];
+      var jsonyD1 = [];
+                    $.ajax({
+                        url: '/admin/apiChart',
+                        cache: false,
+                        async: false,
+                        success: function(data) {
+                           var json=eval(data);
+                           console.log(data);
+                           jsonXData.push("人脸检测");
+                           jsonyD1.push(json["detect"]);
+                           jsonXData.push("人脸搜索");
+                           jsonyD1.push(json["identify"]);
+                           jsonXData.push("人脸比对");
+                           jsonyD1.push(json["verify"]);
+                           jsonXData.push("人脸添加");
+                           jsonyD1.push(json["face"]);
+                        }
+                    });
+
+      var chart;
+      chart = new Highcharts.Chart({
+          chart: {
+              renderTo: 'showShape', //放置图表的容器
+              plotBackgroundColor: null,
+              plotBorderWidth: null,
+              defaultSeriesType: 'column' //图表类型line, spline, area, areaspline, column, bar, pie , scatter
+          },
+          exporting:{
+              enabled:false //用来设置是否显示‘打印’,'导出'等功能按钮，不设置时默认为显示
+          },
+          credits: {
+              enabled:false
+          },
+
+          title: {
+              text: 'api使用的直方图'
+          },
+          xAxis: { //X轴数据
+              categories: jsonXData,
+              lineWidth: 2,
+              labels: {
+                  align: 'right',
+                  style: {
+                      font: 'normal 13px 宋体'
+                  }
+              }
+          },
+          yAxis: { //Y轴显示文字
+              lineWidth: 2,
+              title: {
+                  text: '使用量/次'
+              }
+          },
+          tooltip: {
+              formatter: function () {
+                  return '<b>' + this.x + '</b><br/>' + this.series.name + ': ' + Highcharts.numberFormat(this.y, 0);
+              }
+          },
+          plotOptions: {
+              column: {
+                  dataLabels: {
+                      enabled: true
+                  },
+                  enableMouseTracking: true //是否显示title
+              }
+          },
+          //这此处添加 可以出现实现多个数据共同展示
+          series: [{
+              name: '使用次数',
+              data: jsonyD1
+          }]
+      });
+
+  })
+    
+</script>
+</body>
+</html>

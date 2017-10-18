@@ -393,7 +393,7 @@ public class ForwardController {
         if (!isMaster)
             try {
                 throw new IllegalIDException("bad_id");
-            } catch (IllegalIDException e) {
+            } catch (IllegalIDException e){
                 response.setStatus(403);
                 logger.error("*****BAD_ID*****@"+userName);
                 ErrorPrompt.addInfo("error","bad_id");

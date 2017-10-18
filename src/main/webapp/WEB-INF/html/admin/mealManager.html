@@ -232,20 +232,8 @@
 </div>
 <script>
 
-    $("#btn_query").click(function (params) {
-        var opt = {
-            url: "/admin/findMeals",
-            silent: true,
-            query:{
-                limit: params.limit,   //页面大小
-                offset: 0,//查询的起始位置
-                "name": $("#name").val(),
-                "type":$('#selected option:selected').val()=="请选择"?null:$('#selected option:selected').val()
-            }
-        };
-
-
-        $("#tb_departments").bootstrapTable("refreshOptions",opt);
+    $("#btn_query").click(function () {
+        $("#tb_departments").bootstrapTable("refreshOptions",TableInit);
 
     });
     $(function () {
