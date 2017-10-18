@@ -1,9 +1,10 @@
 package com.ntech.controller;
 
+import com.mongodb.util.JSON;
 import com.ntech.demo.ConnectionSDK;
-import com.ntech.forward.Constant;
 import com.ntech.demo.HttpUploadFile;
 import com.ntech.demo.MethodUtil;
+import com.ntech.forward.Constant;
 import com.ntech.model.Customer;
 import com.ntech.model.LibraryKey;
 import com.ntech.model.SetMeal;
@@ -11,8 +12,10 @@ import com.ntech.service.inf.ICustomerService;
 import com.ntech.service.inf.ILibraryService;
 import com.ntech.service.inf.ISetMealService;
 import com.ntech.util.CommonUtil;
+import com.ntech.util.PayUtil;
 import com.ntech.util.PictureShow;
 import com.ntech.util.SHAencrypt;
+import com.pingplusplus.model.Charge;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -20,9 +23,11 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
 import javax.imageio.ImageIO;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +35,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.security.PublicKey;
 import java.util.*;
 import java.util.List;
 
@@ -119,7 +126,7 @@ public class CustomerController {
     @RequestMapping("record")
     public String recordLogJump(HttpSession session) {
         String name = (String) session.getAttribute("name");
-        if(null==name||"".equals(name)){
+        if (null == name || "".equals(name)) {
             return "error";
         }
         return "record-log";
@@ -128,7 +135,7 @@ public class CustomerController {
     @RequestMapping("login")
     public String loginJump(HttpSession session) {
         String name = (String) session.getAttribute("name");
-        if(null!=name&&!name.equals("")){
+        if (null != name && !name.equals("")) {
             return "info";
         }
         return "login";
@@ -155,27 +162,27 @@ public class CustomerController {
 
     //修改密码
     @RequestMapping("modify-password")
-    public String modifyPassword(){
+    public String modifyPassword() {
         return "modify-password";
     }
 
     @RequestMapping("validate-change")
     @ResponseBody
-    public String validateAndChangePwd(HttpSession session,String oldPwd,String newPwd){
+    public String validateAndChangePwd(HttpSession session, String oldPwd, String newPwd) {
         String name = (String) session.getAttribute("name");
-        if(name==null||"".equals(name)){
+        if (name == null || "".equals(name)) {
             return "null";
         }
-        if(null==newPwd||"".equals(newPwd)||null==oldPwd||"".equals(oldPwd)){
+        if (null == newPwd || "".equals(newPwd) || null == oldPwd || "".equals(oldPwd)) {
             return "errorParam";
         }
-        if(!CommonUtil.checkPassword(newPwd)){
+        if (!CommonUtil.checkPassword(newPwd)) {
             return "errorNewPwd";
         }
-        if(oldPwd.equals(newPwd)){
+        if (oldPwd.equals(newPwd)) {
             return "equals";
         }
-        if(customerService.modifyPwd(name,oldPwd,newPwd)){
+        if (customerService.modifyPwd(name, oldPwd, newPwd)) {
             session.removeAttribute("name");
             return "success";
         }
@@ -184,23 +191,23 @@ public class CustomerController {
 
     //忘记密码跳转
     @RequestMapping("forget-password")
-    public String forgetPasswrod(){
+    public String forgetPasswrod() {
         return "forget-password";
     }
 
     @RequestMapping("handle-forget")
     @ResponseBody
-    public String handleForgetPwd(HttpSession session,String name,String email){
-        if(null==name||null==email||"".equals(name)||"".equals(email)){
+    public String handleForgetPwd(HttpSession session, String name, String email) {
+        if (null == name || null == email || "".equals(name) || "".equals(email)) {
             return "null";
         }
-        if(!CommonUtil.checkUserName(name)){
+        if (!CommonUtil.checkUserName(name)) {
             return "name";
         }
-        if(!CommonUtil.checkEmail(email)){
+        if (!CommonUtil.checkEmail(email)) {
             return "email";
         }
-        if(customerService.forgetPwd(name,email)){
+        if (customerService.forgetPwd(name, email)) {
             session.removeAttribute("name");
             return "success";
         }
@@ -209,14 +216,14 @@ public class CustomerController {
 
 
     @RequestMapping("forgetPwdPageCheck")
-    public ModelAndView forgetPwdPageCheck(HttpSession session,String name, String validateCode, String email) {
+    public ModelAndView forgetPwdPageCheck(HttpSession session, String name, String validateCode, String email) {
         ModelAndView mav = new ModelAndView("error");
         if (null == name || "".equals(name) || null == validateCode || "".equals(validateCode)) {
             return mav;
         }
         Customer customer = customerService.findByName(name);
-        if (validateCode.equals(SHAencrypt.encryptSHA(customer.getEmail()))&&customer.getEmail().equals(email)) {
-            session.setAttribute("ForgetPwdFlag",name);
+        if (validateCode.equals(SHAencrypt.encryptSHA(customer.getEmail())) && customer.getEmail().equals(email)) {
+            session.setAttribute("ForgetPwdFlag", name);
             mav.setViewName("forget-change");
         }
         return mav;
@@ -224,18 +231,18 @@ public class CustomerController {
 
     @RequestMapping("change-newPwd")
     @ResponseBody
-    public String changeToNewPwd(HttpSession session,String newPwd){
+    public String changeToNewPwd(HttpSession session, String newPwd) {
         String name = (String) session.getAttribute("ForgetPwdFlag");
-        if(name==null||"".equals(name)){
+        if (name == null || "".equals(name)) {
             return "errorPage";
         }
-        if(null==newPwd||"".equals(newPwd)||!CommonUtil.checkPassword(newPwd)){
+        if (null == newPwd || "".equals(newPwd) || !CommonUtil.checkPassword(newPwd)) {
             return "errorParam";
         }
         Customer customer = customerService.findByName(name);
-        if(customer!=null){
+        if (customer != null) {
             customer.setPassword(SHAencrypt.encryptSHA(newPwd));
-            if(customerService.modify(customer)==1){
+            if (customerService.modify(customer) == 1) {
                 session.removeAttribute("ForgetPwdFlag");
                 return "success";
             }
@@ -358,7 +365,9 @@ public class CustomerController {
                 //计算剩余天数
                 int leftDay = (int) ((meal.getEndTime().getTime() -
                         meal.getBeginTime().getTime()) / (1000 * 3600 * 24));
-                if(leftDay<0){leftDay=0;}
+                if (leftDay < 0) {
+                    leftDay = 0;
+                }
                 session.setAttribute("leftDay", leftDay);
             }
         }
@@ -372,7 +381,7 @@ public class CustomerController {
     @RequestMapping("setMeal")
     public String setMealJump(HttpSession session) {
         String name = (String) session.getAttribute("name");
-        if(null==name||"".equals(name)){
+        if (null == name || "".equals(name)) {
             return "login";
         }
         return "set-meal";
@@ -420,7 +429,7 @@ public class CustomerController {
     public ModelAndView getDemoGallery(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
         ModelAndView modelAndView = new ModelAndView("show-gallery-demo");
         String name = (String) session.getAttribute("name");
-        if(null==name||"".equals(name)){
+        if (null == name || "".equals(name)) {
             modelAndView.setViewName("login");
             return modelAndView;
         }
@@ -469,6 +478,7 @@ public class CustomerController {
         return null;
 
     }
+
     //在用户库中的人脸做搜索,如果session中的用户名不存在则则demo_defalut库中搜索
     @RequestMapping("getDemoAllFace")
     @ResponseBody
@@ -520,7 +530,7 @@ public class CustomerController {
         String name = (String) session.getAttribute("name");
         String result = null;
         if (null != name && !"".equals(name)) {
-            if(!customerService.checkFaceNumber(name)){
+            if (!customerService.checkFaceNumber(name)) {
                 return "0";
             }
             if (request.getRequestURI().equals("/customer/addToGallery")) {
@@ -531,7 +541,7 @@ public class CustomerController {
             if (result != null) {
                 //添加后获取最新的图片列表
 
-                customerService.operateFaceNumber(name,1,1);
+                customerService.operateFaceNumber(name, 1, 1);
                 result = getMyGalleryLocal(name);
 
             }
@@ -544,15 +554,15 @@ public class CustomerController {
     //通过id删除个人人脸库中的图片
     @RequestMapping("deleteToGallery")
     @ResponseBody
-    public String deleteToGallery(String id , HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+    public String deleteToGallery(String id, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
         String name = (String) session.getAttribute("name");
         logger.info(id);
-        HashMap<String,String> header = new HashMap<String,String>();
-        header.put("Method","DELETE");
-        header.put("API","/v0/face/id/"+id);
+        HashMap<String, String> header = new HashMap<String, String>();
+        header.put("Method", "DELETE");
+        header.put("API", "/v0/face/id/" + id);
         String result = null;
         if (null != name && !"".equals(name)) {
-            if(!customerService.checkFaceNumber(name)){
+            if (!customerService.checkFaceNumber(name)) {
                 return "1";
             }
             try {
@@ -561,7 +571,7 @@ public class CustomerController {
                 e.printStackTrace();
             }
             request.setAttribute("idCheck", name);
-            customerService.operateFaceNumber(name,0,1);
+            customerService.operateFaceNumber(name, 0, 1);
             //检查图片id是否合法,检查方法待定,id合法后才能进    行下一步操作
 //            if(null!=picId&&!"".equals(picId)) {
 //                request.setAttribute("localApi","/v0/face/id/"+picId);
@@ -686,14 +696,14 @@ public class CustomerController {
 
     @RequestMapping("faceNumber")
     @ResponseBody
-    public int getFaceNum(HttpServletRequest request, HttpServletResponse response){
+    public int getFaceNum(HttpServletRequest request, HttpServletResponse response) {
         request.setAttribute("localAPI", "/v1/detect");
         String result = MethodUtil.getInstance().requestForward(request, response);
-        if(result!=null){
+        if (result != null) {
             try {
-                JSONObject faceResult= (JSONObject) new JSONParser().parse(result);
-                JSONArray faceArray= (JSONArray) faceResult.get("faces");
-                if(faceArray==null){
+                JSONObject faceResult = (JSONObject) new JSONParser().parse(result);
+                JSONArray faceArray = (JSONArray) faceResult.get("faces");
+                if (faceArray == null) {
                     response.setStatus(200);
                     return 0;
                 }
@@ -728,24 +738,24 @@ public class CustomerController {
             jsonResult = (JSONObject) new JSONParser().parse(result);
             JSONObject jsonResult1 = (JSONObject) jsonResult.get("results");
 //            jsonArray=jsonResult1.;
-            JSONArray jsonArrayFace=null;
-            for(Object key:jsonResult1.keySet()){
+            JSONArray jsonArrayFace = null;
+            for (Object key : jsonResult1.keySet()) {
                 JSONObject finalSingle = new JSONObject();
-                jsonArrayFace= (JSONArray) jsonResult1.get(key);
-                if(jsonArrayFace.size()==0){
+                jsonArrayFace = (JSONArray) jsonResult1.get(key);
+                if (jsonArrayFace.size() == 0) {
                     continue;
                 }
                 for (int i = 0; i < jsonArrayFace.size(); i++) {
                     JSONObject tmpJson = (JSONObject) jsonArrayFace.get(i);
                     JSONObject tmpJson1 = (JSONObject) tmpJson.get("face");
-                    String confidence=tmpJson.get("confidence")+"";
+                    String confidence = tmpJson.get("confidence") + "";
                     String tmpStrng = (String) tmpJson1.get("normalized");
 //                String photo = (String) tmpJson.get("photo");
 //                String thumbnail = (String) tmpJson.get("thumbnail");
                     tmpStrng = "http://192.168.10.208" + tmpStrng.substring(16);
-                    String picBase64=PictureShow.getInstance().getBase64Picture(tmpStrng);
+                    String picBase64 = PictureShow.getInstance().getBase64Picture(tmpStrng);
 //                String picBase64 = "http://192.168.10.208" + tmpStrng.substring(16);
-                    JSONObject objectTemp=(JSONObject) jsonArrayFace.get(i);
+                    JSONObject objectTemp = (JSONObject) jsonArrayFace.get(i);
                     tmpJson1.remove("normalized");
                     tmpJson1.remove("photo");
                     tmpJson1.remove("thumbnail");
@@ -753,9 +763,9 @@ public class CustomerController {
                     tmpJson1.put("photo", "photoUrl");
                     tmpJson1.put("thumbnail", "thumbnailUrl");
 
-                    finalSingle.put("confidence",confidence);
-                    finalSingle.put("face",tmpJson1);
-                    finalSingle.put("box",key);
+                    finalSingle.put("confidence", confidence);
+                    finalSingle.put("face", tmpJson1);
+                    finalSingle.put("box", key);
                 }
                 jsonArrayResult.add(finalSingle);
             }
@@ -766,6 +776,101 @@ public class CustomerController {
 
         return jsonArrayResult;
     }
+
+    //创建订单
+    @RequestMapping("creatCharge")
+    @ResponseBody
+    public Charge create() {
+        Charge charge = PayUtil.createCharge(100, "alipay_pc_direct","date",1);
+        //存入要将数据存入数据库中
+        //Todo
+        return charge;
+    }
+
+    //查询订单
+    public void retrieve(String id) {
+        Charge charge = PayUtil.retrieve(id);
+
+    }
+
+    //撤销订单
+    @RequestMapping("cancelOrder")
+    public boolean reserve(String id) {
+
+        Charge charge;
+        charge = PayUtil.reverse(id);
+        //修改数据库数据
+        //Todo
+
+        return false;
+    }
+
+    @RequestMapping("webhooks")
+    @ResponseBody
+    //Webhooks
+    public void webhooks(HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        request.setCharacterEncoding("utf-8");
+        //获取头部的所有信息
+        Enumeration headerName = request.getHeaderNames();
+        String signature = null;  //签名
+        //遍历请求头 得到签名
+        while (headerName.hasMoreElements()) {
+            String key = (String) headerName.nextElement();
+            String value = request.getHeader(key);
+            //获取签名
+            if ("x-pingplusplus-signature".equals(key)) {
+                signature = value;
+            }
+        }
+        // 获得 http body 内容
+        StringBuffer eventJson = new StringBuffer();
+        BufferedReader reader = null;
+        try {
+            reader = request.getReader();
+            do {
+                eventJson.append(reader.readLine());
+            } while (reader.read() != -1);
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
+        reader.close();
+        JSONObject event = (JSONObject) JSON.parse(eventJson.toString());
+        boolean verifyRS = false;
+        try {
+            PublicKey publicKey = PayUtil.getPublicKey();
+            //验证
+            verifyRS = PayUtil.verifyData(eventJson.toString(), signature, publicKey);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //验证成功执行的代码
+        if (verifyRS) {
+            if ("charge.succeeded".equals(event.get("type"))) {
+                JSONObject data = (JSONObject) JSON.parse(event.get("data").toString());
+                JSONObject object = (JSONObject) JSON.parse(data.get("object").toString());
+                String orderId = (String) object.get("order_no");
+                String channel = (String) object.get("channel");
+                int amountFen = (int) object.get("amount");
+                Double amountYuan = amountFen * 1.0 / 100;       //ping++扣款,精确到分，而数据库精确到元  
+                //Todo
+                //将订单信息存入数据库
+                //更新set_meal 表的信息
+                response.setStatus(200);
+
+            }else if("refund.success".equals(event.get("type"))){
+                //Todo
+                //将订单信息存入数据库
+                //更新set_meal 表的信息
+                response.setStatus(200);
+            }
+        } else {
+       response.setStatus(500);
+        }
+    }
+
     //包装返回的请求
     private JSONArray wrapResponseForSearch(String result) {
         JSONObject jsonResult = null;
@@ -775,22 +880,22 @@ public class CustomerController {
             jsonResult = (JSONObject) new JSONParser().parse(result);
             JSONObject jsonResult1 = (JSONObject) jsonResult.get("results");
 //            jsonArray=jsonResult1.;
-            JSONArray jsonArrayFace=null;
-            for(Object key:jsonResult1.keySet()){
-                jsonArrayFace= (JSONArray) jsonResult1.get(key);
+            JSONArray jsonArrayFace = null;
+            for (Object key : jsonResult1.keySet()) {
+                jsonArrayFace = (JSONArray) jsonResult1.get(key);
             }
             for (int i = 0; i < jsonArrayFace.size(); i++) {
                 JSONObject tmpJson = (JSONObject) jsonArrayFace.get(i);
 
                 JSONObject tmpJson1 = (JSONObject) tmpJson.get("face");
-                String confidence=tmpJson.get("confidence")+"";
+                String confidence = tmpJson.get("confidence") + "";
                 String tmpStrng = (String) tmpJson1.get("normalized");
 //                String photo = (String) tmpJson.get("photo");
 //                String thumbnail = (String) tmpJson.get("thumbnail");
 //                tmpStrng = "http://192.168.10.208" + tmpStrng.substring(16);
-                String picBase64=PictureShow.getInstance().getBase64Picture(tmpStrng);
+                String picBase64 = PictureShow.getInstance().getBase64Picture(tmpStrng);
 //                String picBase64 = "http://192.168.10.208" + tmpStrng.substring(16);
-                JSONObject objectTemp=(JSONObject) jsonArrayFace.get(i);
+                JSONObject objectTemp = (JSONObject) jsonArrayFace.get(i);
                 tmpJson1.remove("normalized");
                 tmpJson1.remove("photo");
                 tmpJson1.remove("thumbnail");
@@ -798,8 +903,8 @@ public class CustomerController {
                 tmpJson1.put("photo", "photoUrl");
                 tmpJson1.put("thumbnail", "thumbnailUrl");
                 JSONObject finalSingle = new JSONObject();
-                finalSingle.put("confidence",confidence);
-                finalSingle.put("face",tmpJson1);
+                finalSingle.put("confidence", confidence);
+                finalSingle.put("face", tmpJson1);
                 jsonArrayResult.add(finalSingle);
             }
         } catch (ParseException e) {
@@ -808,7 +913,8 @@ public class CustomerController {
 
         return jsonArrayResult;
     }
-  //包装返回的请求
+
+    //包装返回的请求
     private JSONArray wrapResponse(String result) {
         JSONObject jsonResult = null;
         JSONArray jsonArray = null;
@@ -816,13 +922,13 @@ public class CustomerController {
             logger.info(result);
             jsonResult = (JSONObject) new JSONParser().parse(result);
             jsonArray = (JSONArray) jsonResult.get("results");
-             for (int i = 0; i < jsonArray.size(); i++) {
+            for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject tmpJson = (JSONObject) jsonArray.get(i);
                 String tmpStrng = (String) tmpJson.get("normalized");
 //                String photo = (String) tmpJson.get("photo");
 //                String thumbnail = (String) tmpJson.get("thumbnail");
 //                tmpStrng = "http://192.168.10.208" + tmpStrng.substring(16);
-                String picBase64=PictureShow.getInstance().getBase64Picture(tmpStrng);
+                String picBase64 = PictureShow.getInstance().getBase64Picture(tmpStrng);
 //                String picBase64 = "http://192.168.10.208" + tmpStrng.substring(16);
                 ((JSONObject) jsonArray.get(i)).put("normalized", picBase64);
                 ((JSONObject) jsonArray.get(i)).put("photo", "photoUrl");
