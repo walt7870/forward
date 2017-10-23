@@ -270,7 +270,7 @@
                             </div>
                             <div class="detect_minimg3">
                                 <div class="detect_fiveimg3" reveal_sign="width"><img onclick="verifyReq(this.src,2)" src="http://yun.anytec.cn:8080/img/index/three/max_img1_1.png"></div>
-                                <div class="detect_fiveimg3" reveal_sign="width"><img onclick="verifyReq(this.src,2)" src="http://yun.anytec.cn:8080/img/index/three/max_img2_1.png"></div>
+                                <div class="detect_fiveimg3" reveal_sign="width"><img onclick="verifyReq(this.src,2)" src="http://yun.anytec.cn:8080/img/index/two/max_img2_1.png"></div>
                                 <div class="detect_fiveimg3" reveal_sign="width"><img onclick="verifyReq(this.src,2)" src="http://yun.anytec.cn:8080/img/index/three/max_img3_1.png"></div>
                                 <div class="detect_fiveimg3" reveal_sign="width"><img onclick="verifyReq(this.src,2)" src="http://yun.anytec.cn:8080/img/index/three/max_img4_1.png"></div>
                                 <div class="detect_fiveimg3" reveal_sign="width"><img onclick="verifyReq(this.src,2)" class="img_active" src="http://yun.anytec.cn:8080/img/index/two/max_img1_5.png"></div>
@@ -321,7 +321,7 @@
                             </div>
                             <div class="detect_minimg3_4">
                                 <div class="detect_fiveimg3_4" reveal_sign="width"><img onclick="verifyReqCol(this.src,1)" src="http://yun.anytec.cn:8080/img/index/two/max_img1_1.png"></div>
-                                <div class="detect_fiveimg3_4" reveal_sign="width"><img onclick="verifyReqCol(this.src,1)" src="http://yun.anytec.cn:8080/img/index/two/max_img1_2.png"></div>
+                                <div class="detect_fiveimg3_4" reveal_sign="width"><img onclick="verifyReqCol(this.src,1)" src="http://yun.anytec.cn:8080/img/index/two/max_img2_1.png"></div>
                                 <div class="detect_fiveimg3_4" reveal_sign="width"><img onclick="verifyReqCol(this.src,1)" src="http://yun.anytec.cn:8080/img/index/two/max_img1_3.png"></div>
                                 <div class="detect_fiveimg3_4" reveal_sign="width"><img onclick="verifyReqCol(this.src,1)" src="http://yun.anytec.cn:8080/img/index/two/max_img1_4.png"></div>
                                 <div class="detect_fiveimg3_4" reveal_sign="width"><img onclick="verifyReqCol(this.src,1)" class="img_active" src="http://yun.anytec.cn:8080/img/index/two/max_img1_5.png"></div>
