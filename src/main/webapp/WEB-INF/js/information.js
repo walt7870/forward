@@ -98,6 +98,10 @@ $(document).ready(function() {
             type:"post",
             url:"creatCharge",
             dataType:"json",
+            data:{
+                "type":type,
+                "value":value
+            },
             async:false,
             success:function (data) {
                 pingpp.createPayment(data, function(result, err){

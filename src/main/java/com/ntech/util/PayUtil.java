@@ -4,7 +4,10 @@ import com.pingplusplus.Pingpp;
 import com.pingplusplus.exception.*;
 import com.pingplusplus.model.Charge;
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.mock.web.MockMultipartHttpServletRequest;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
@@ -18,15 +21,46 @@ import java.util.Map;
 
 public class PayUtil {
     //设置apiKey
-    private final static String apiKey = "sk_test_anj9C08CuPi51C8C4GfLOGyT";
+    private static String apiKey ;
     //设置appid
-    private final static String appId = "app_qrjLSKXLW94KuPuX";
-    //设置私钥
-    private final static String publicKeyPath = "E:\\ntech\\forward\\src\\main\\resources\\public_key.pem";
+    private  static String appId ;
+
+    // 设置私钥
+    private  static String privateKeyPath ;
+    //设置签名  用于测试  实际在http请求中获取
+    private    static  String signaturePath;
+    //设置webhooks的原始数据  用于测试
+    private  static  String dataPath;
     //设置公钥
-    private final static String privateKeyPath = "E:\\ntech\\forward\\src\\main\\resources\\rsa_private_key.pem";
+    private  static String   publicPath;
+
+    static {
+        apiKey = "sk_test_anj9C08CuPi51C8C4GfLOGyT";
+        appId = "app_qrjLSKXLW94KuPuX";
+        privateKeyPath=getPath("rsa_private_key.pem");
+        signaturePath=getPath("signature.txt");
+        dataPath=getPath("webhooks_raw_post_data.json");
+        publicPath=getPath("pingpp_public_key.pem");
+    }
+    private static  String getPath(String fileName){
+
+        return Thread.currentThread().getContextClassLoader().getResource(fileName).getPath();
+    }
+             //签名验证测试
+    public static  void main(String[] args) throws Exception {
+         String data=getStringFromFile(dataPath);
+         System.out.println("--------post数据--------");
+         System.out.println(data);
+         String signature=getStringFromFile(signaturePath);
+         System.out.println("--------签名数据-----------");
+         System.out.println(signature);
+         boolean result=verifyData(data,signature,getPublicKey());
+         System.out.println(result?"验证成功":"验证失败");
+//        System.out.println(getPath("signature.txt"));
+
+    }
     //创建订单
-    public static Charge createCharge(int amount, String channel,String type,Integer value) {
+    public static Charge createCharge(int amount, String channel) {
         Pingpp.apiKey = apiKey;
         Pingpp.privateKeyPath =privateKeyPath;
         Pingpp.appId = appId;
@@ -124,8 +158,10 @@ public class PayUtil {
     }
     //获取公钥
     public static PublicKey getPublicKey() throws Exception {
-         String publicKey=getStringFromFile(publicKeyPath);
-         byte[] keyBytes= Base64.decodeBase64(publicKey);
+         //String publicKey=getStringFromFile(publicKeyPath);
+        String publicKey=getStringFromFile(publicPath);
+        publicKey=publicKey.replaceAll("(-+BEGIN PUBLIC KEY-+\\r?\\n|-+END PUBLIC KEY-+\\r?\\n?)", "");
+        byte[] keyBytes= Base64.decodeBase64(publicKey);
          KeyFactory keyFactory=KeyFactory.getInstance("RSA");
          return  keyFactory.generatePublic(new X509EncodedKeySpec(keyBytes));
     }

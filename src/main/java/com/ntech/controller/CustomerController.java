@@ -780,10 +780,14 @@ public class CustomerController {
     //创建订单
     @RequestMapping("creatCharge")
     @ResponseBody
-    public Charge create() {
-        Charge charge = PayUtil.createCharge(100, "alipay_pc_direct","date",1);
-        //存入要将数据存入数据库中
-        //Todo
+    public Charge create(Double amount,String channel ,String type,Integer value) {
+        Charge charge = PayUtil.createCharge(100, "alipay_pc_direct");
+
+        //Todo 存入要将数据存入数据库中  将要购买的种类和数量加入表中
+
+
+
+
         return charge;
     }
 
@@ -960,5 +964,6 @@ public class CustomerController {
         int g = fc + random.nextInt(bc - fc);
         int b = fc + random.nextInt(bc - fc);
         return new Color(r, g, b);
+
     }
 }
