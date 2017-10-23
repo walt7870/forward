@@ -1,3 +1,4 @@
+
 package com.ntech.controller;
 
 import com.ntech.exception.IllegalAPIException;
@@ -8,7 +9,9 @@ import com.ntech.forward.HttpUploadFile;
 import com.ntech.forward.MethodUtil;
 import com.ntech.forward.PictureForward;
 import com.ntech.model.Customer;
+import com.ntech.util.Base64Encrypt;
 import com.ntech.util.Check;
+import com.ntech.util.ConfigManager;
 import com.ntech.util.ErrorPrompt;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
@@ -24,8 +27,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * API转发Controller
@@ -38,7 +43,9 @@ public class ForwardController {
     private final static Logger logger = Logger.getLogger(ForwardController.class);
     //获取用于与持久化层做数据交互的工具类实例
     private static Check check = (Check)Constant.GSB.getBean("check");
-    //人脸探测API
+    //************************************************************************************
+    //                      DETECT  人脸探测
+    //************************************************************************************
     @RequestMapping(method = RequestMethod.POST,value="/{version:[v][01]}/detect")
     @ResponseBody
     public String detect(@PathVariable("version")String version, HttpServletRequest request, HttpServletResponse response)
@@ -63,7 +70,10 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-    //人脸对比API
+    //************************************************************************************
+    //                     VERIFY  人脸对比
+    //************************************************************************************
+
     @RequestMapping(value = "/{version:[v][01]}/verify",method = RequestMethod.POST)
     @ResponseBody
     public String verify(@PathVariable("version")String version, HttpServletRequest request, HttpServletResponse response)
@@ -83,7 +93,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-    //人脸搜索匹配API
+    //************************************************************************************
+    //                     IDENTIFY  人脸搜索匹配
+    //************************************************************************************
     @RequestMapping(value = "/{version:[v][01]}/identify",method = RequestMethod.POST)
     @ResponseBody
     public String identify(@PathVariable("version")String version, HttpServletRequest request, HttpServletResponse response)
@@ -104,8 +116,11 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-    //指定库人脸搜索匹配
-    @RequestMapping(method = RequestMethod.POST,value = "/{version:[v][01]}/identify/gallery/{gallery:\\w{1,48}}")
+    //************************************************************************************
+    //                IDENTIFY（GALLERY） 指定库的人脸搜索匹配
+    //************************************************************************************
+
+    @RequestMapping(method = RequestMethod.POST,value = "/{version:[v][01]}/faces/gallery/{gallery:\\w{1,48}}/identify")
     @ResponseBody
     public String identifyGallery(@PathVariable("version")String version,@PathVariable("gallery")String gallery, HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -141,7 +156,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-    //人脸探测并入库
+    //************************************************************************************
+    //                      FACE  人脸探测和信息入库
+    //************************************************************************************
     @RequestMapping(value = "/{version:[v][01]}/face",method = RequestMethod.POST)
     @ResponseBody
     public String face(@PathVariable("version")String version, HttpServletRequest request, HttpServletResponse response)
@@ -170,6 +187,11 @@ public class ForwardController {
         // 解析响应，获取用户添加的人脸数并记录日志
         if(HttpUploadFile.status!=200)
             return reply;
+        if(reply.contains("\"galleries\": [\"default\"]")){
+            response.setStatus(500);
+            ErrorPrompt.addInfo("error","add face failed");
+            return ErrorPrompt.getJSONInfo();
+        }
         JSONParser jsonParser = new JSONParser();
         JSONArray results = (JSONArray) ((JSONObject)jsonParser.parse(reply)).get("results");
         int addFace = results.size();
@@ -179,6 +201,9 @@ public class ForwardController {
         check.setLog(customer.getName(),new StringBuilder("face ￥").append(Constant.Face).append(" * ").append(addFace).toString(),1);
         return reply;
     }
+    //************************************************************************************
+    //              FACE/META  根据指定meta获取人脸
+    //************************************************************************************
 
     @RequestMapping(method = RequestMethod.GET,value = "/{version:[v][01]}/face/meta/{meta:\\S*}")
     @ResponseBody
@@ -200,6 +225,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
+    //************************************************************************************
+    //            FACE/META  同上,获取meta为空值的人脸
+    //************************************************************************************
     @RequestMapping(method = RequestMethod.GET,value = "/{version:[v][01]}/face/meta/")
     @ResponseBody
     public String faceMetaS(@PathVariable("version")String version,HttpServletRequest request, HttpServletResponse response)
@@ -220,6 +248,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
+    //************************************************************************************
+    //               FACE/META  根据meta获取指定库的人脸
+    //************************************************************************************
 
     @RequestMapping(method = RequestMethod.GET,value = "/{version:[v][01]}/face/gallery/{gallery:\\w+}/meta/{meta:\\S*}")
     @ResponseBody
@@ -254,6 +285,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
+    //************************************************************************************
+    //              FACE/META   同上,获取指定库meta为空值的人脸
+    //************************************************************************************
     @RequestMapping(method = RequestMethod.GET,value = "/{version:[v][01]}/face/gallery/{gallery:\\w+}/meta/")
     @ResponseBody
     public String faceMetaGalleryS(@PathVariable("version")String version,@PathVariable("gallery")String galleryName, HttpServletRequest request, HttpServletResponse response)
@@ -287,7 +321,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-
+    //************************************************************************************
+    //                META  根据meta分组展示指定库人脸
+    //************************************************************************************
 
     @RequestMapping(method = RequestMethod.GET,value = "/{version:[v][01]}/meta/gallery/{gallery:\\w+}")
     @ResponseBody
@@ -317,7 +353,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-
+    //************************************************************************************
+    //                 META  根据META展示多有库人脸
+    //************************************************************************************
     @RequestMapping(method = RequestMethod.GET,value = "/{version:[v][01]}/meta")
     @ResponseBody
     public String meta(@PathVariable("version")String version, HttpServletRequest request, HttpServletResponse response)
@@ -332,7 +370,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-
+    //************************************************************************************
+    //              GET - FACE/ID  根据id获取人脸
+    //************************************************************************************
     @RequestMapping(value="/{version:[v][01]}/face/id/{id:\\d{1,24}}",method = RequestMethod.GET)
     @ResponseBody
     public String faceIdGET(@PathVariable("version")String version,@PathVariable("id")String id,HttpServletRequest request, HttpServletResponse response)
@@ -370,7 +410,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-
+    //************************************************************************************
+    //                DELETE - FACE/ID 根据id删除人脸
+    //************************************************************************************
     @RequestMapping(method=RequestMethod.DELETE,value="/{version:[v][01]}/face/id/{id:\\d{1,24}}")
     @ResponseBody
     public String faceIdDELETE(@PathVariable("version")String version,@PathVariable("id")String id,HttpServletRequest request, HttpServletResponse response)
@@ -393,7 +435,7 @@ public class ForwardController {
         if (!isMaster)
             try {
                 throw new IllegalIDException("bad_id");
-            } catch (IllegalIDException e){
+            } catch (IllegalIDException e) {
                 response.setStatus(403);
                 logger.error("*****BAD_ID*****@"+userName);
                 ErrorPrompt.addInfo("error","bad_id");
@@ -413,10 +455,61 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-
-    @RequestMapping(method=RequestMethod.POST,value = "/{version:[v][01]}/face/id/{id:\\d{1,24}}")
+    //************************************************************************************
+    //            PUT - FACE/ID 根据id更新人脸
+    //************************************************************************************
+    @RequestMapping(method=RequestMethod.PUT,value = "/{version:[v][01]}/face/id/{id:\\d{1,24}}")
     @ResponseBody
     public String faceIdPUT(@PathVariable("version")String version,@PathVariable("id")String id,HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        logger.info("*****enter Controller*****");
+        Customer customer =(Customer) request.getAttribute("customer");
+        String userName = customer.getName();
+        boolean isMaster = false;
+        List<String> galleries = check.getGalleries((String)request.getAttribute("inputToken"));
+        List<String> list = check.checkId(id);
+        if(list==null)
+            return ErrorPrompt.getJSONInfo();
+        Iterator<String> iterator = list.iterator();
+        while (iterator.hasNext()) {
+            if (galleries.contains(iterator.next())) {
+                isMaster = true;
+                break;
+            }
+        }
+        if (!isMaster)
+            try {
+                throw new IllegalIDException("bad_id");
+            } catch (IllegalIDException e) {
+                response.setStatus(403);
+                logger.error("*****BAD_ID*****@"+userName);
+                ErrorPrompt.addInfo("error","bad_id");
+                e.printStackTrace();
+                return ErrorPrompt.getJSONInfo();
+            }
+        String API = new StringBuilder("/").append(version).append("/face/id/").append(id).toString();
+        logger.info("CHECK_API :" + API);
+        request.setAttribute("galleries",galleries);
+        request.setAttribute("chargeAPI","facePut");
+        Map<String,String> header = new HashMap<String,String>();
+        header.put("Method","PUT");
+        header.put("API",API);
+        String reply = null;
+        if(request.getAttribute("PUT_PARAM")!=null){
+            Map<String,Object> param = (Map<String,Object>)request.getAttribute("PUT_PARAM");
+            reply = HttpUploadFile.getInstance().httpURLConnectionSDK(header,param,null,"yes");
+        }
+        if (ErrorPrompt.size() != 0||reply==null)
+            reply = ErrorPrompt.getJSONInfo();
+        String string = ConfigManager.getInstance().getParameter("PICTURE") + "/" + Base64Encrypt.encryptUserName((String) request.getAttribute("userName"));
+        return reply.replaceAll("_anytec_"+userName,"").replaceAll("http://127.0.0.1:3333/uploads", string);
+    }
+    //************************************************************************************
+    //           POST - FACE/ID  根据id更新人脸
+    //************************************************************************************
+    @RequestMapping(method=RequestMethod.POST,value = "/{version:[v][01]}/face/id/{id:\\d{1,24}}")
+    @ResponseBody
+    public String faceIdPOST(@PathVariable("version")String version,@PathVariable("id")String id,HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         logger.info("*****enter Controller*****");
         request.setAttribute("Method","PUT");
@@ -454,7 +547,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-
+    //************************************************************************************
+    //             FACES/GALLERY  获取指定库所有人脸
+    //************************************************************************************
     @RequestMapping(method = RequestMethod.GET,value = "/{version:[v][01]}/faces/gallery/{gallery:\\w{1,48}}")
     @ResponseBody
     public String facesGallery(@PathVariable("version")String version,@PathVariable("gallery")String inputGallery, HttpServletRequest request, HttpServletResponse response)
@@ -489,7 +584,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-
+    //************************************************************************************
+    //             FACES  获取所有人脸
+    //************************************************************************************
     @RequestMapping(method = RequestMethod.GET,value = "/{version:[v][01]}/faces")
     @ResponseBody
     public String faces(@PathVariable("version")String version, HttpServletRequest request, HttpServletResponse response)
@@ -511,7 +608,9 @@ public class ForwardController {
         return reply;
     }
 
-
+    //************************************************************************************
+    //           GET - GALLERIES  获取人脸库列表
+    //************************************************************************************
     @RequestMapping(value= "v0/galleries",method = RequestMethod.GET)
     @ResponseBody
     public String getGalleries(HttpServletRequest request)
@@ -526,7 +625,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply.replaceAll("_anytec_"+userName,"");
     }
-
+    //************************************************************************************
+    //           POST - GALLERIES  新增人脸库
+    //************************************************************************************
     @RequestMapping(value = "/{version:[v][01]}/galleries/{gallery:\\w{1,48}}",method = RequestMethod.POST)
     @ResponseBody
     public String postGallery(@PathVariable("version")String version,@PathVariable("gallery")String createGallery, HttpServletRequest request, HttpServletResponse response)
@@ -562,7 +663,9 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-
+    //************************************************************************************
+    //             DELETE - GALLERIES  删除人脸库
+    //************************************************************************************
     @RequestMapping(value= "/{version:[v][01]}/galleries/{gallery:\\w{1,48}}",method = RequestMethod.DELETE)
     @ResponseBody
     public String deleteGallery(@PathVariable("version")String version,@PathVariable("gallery")String deleteGallery, HttpServletRequest request, HttpServletResponse response)
@@ -596,9 +699,51 @@ public class ForwardController {
             reply = ErrorPrompt.getJSONInfo();
         return reply;
     }
-
-
-
+    //************************************************************************************
+    //           GET - PERSON/ID  获取人物对应meta信息
+    //************************************************************************************
+    @RequestMapping(method = RequestMethod.GET,value="/{version:[v][01]}/person/id/{id:\\d+}")
+    @ResponseBody
+    public String getPersonMeta(@PathVariable("version")String version,@PathVariable("id")Long id, HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        logger.info("*****enter Controller*****");
+        String API = new StringBuilder("/").append(version).append("/person/id/").append(id).toString();
+        //将API放到request作用域中，用于MethodUtil调用cd
+        request.setAttribute("API",API);
+        logger.info("CHECK_API :" + API);
+        //获取FindFaceSDK响应
+        String reply = MethodUtil.getInstance().requestForward(request, response);
+        //程序是否正常执行，若有异常则返回错误提示
+        if (ErrorPrompt.size() != 0)
+            reply = ErrorPrompt.getJSONInfo();
+        return reply;
+    }
+    //************************************************************************************
+    //           PUT - PERSON/ID  更新人物meta信息
+    //************************************************************************************
+    @RequestMapping(method = RequestMethod.PUT,value="/{version:[v][01]}/person/id/{id:\\d+}")
+    @ResponseBody
+    public String putPersonMeta(@PathVariable("version")String version,@PathVariable("id")Long id, HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        logger.info("*****enter Controller*****");
+        String API = new StringBuilder("/").append(version).append("/person/id/").append(id).toString();
+        logger.info("CHECK_API :" + API);
+        Map<String,String> header = new HashMap<String,String>();
+        header.put("Method","PUT");
+        header.put("API",API);
+        String reply = null;
+        if(request.getAttribute("PUT_PARAM")!=null){
+            Map<String,Object> param = (Map<String,Object>)request.getAttribute("PUT_PARAM");
+            reply = HttpUploadFile.getInstance().httpURLConnectionSDK(header,param,null,"yes");
+        }
+        //程序是否正常执行，若有异常则返回错误提示
+        if (ErrorPrompt.size() != 0)
+            reply = ErrorPrompt.getJSONInfo();
+        return reply;
+    }
+    //************************************************************************************
+    //              用户获取人脸相关图片
+    //************************************************************************************
     @RequestMapping("/picture/**")
     @ResponseBody
     public void pictureHandler(HttpServletRequest request, HttpServletResponse response)

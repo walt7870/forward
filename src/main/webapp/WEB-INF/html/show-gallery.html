@@ -110,6 +110,7 @@
                                     <#if galleryDemo??>
                                         <#list galleryDemo as item>
                                             <div class="administer_img" id="${item.id}par">
+                                                <div class="metaDiv">${item.meta}</div>
                                                 <img src="${item.normalized}" />
 												<div class="delete_icon"><img v-on:click="deleteMyGallery($event.target)" v-bind:alt="${item.id}" id="${item.id}" src="../img/information/delete.png"/></div>
                                             </div>
@@ -121,6 +122,7 @@
 
                                 <template v-for="todo in todos">
 										<div class="administer_img">
+                                            <div class="metaDiv">{{todo.meta}}</div>
 											<img v-bind:src="todo.normalized" />
 											<div class="delete_icon"><img v-on:click="deleteMyGallery($event.target)"   v-bind:alt="todo.id" src="../img/information/delete.png"  v-on:click="deleteMyGallery($event.target)"/></div>
 										</div>

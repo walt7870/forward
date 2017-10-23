@@ -39,9 +39,10 @@
         </javaClientGenerator>
 
         <!--对应数据库表名 -->
-        <table tableName="customer"></table>
-        <table tableName="set_meal"></table>
-        <table tableName="library"></table>
-        <table tableName="log"></table>
+        <!--<table tableName="customer"></table>-->
+        <!--<table tableName="set_meal"></table>-->
+        <!--<table tableName="library"></table>-->
+        <!--<table tableName="log"></table>-->
+        <table tableName="order_info"></table>
     </context>
 </generatorConfiguration>
