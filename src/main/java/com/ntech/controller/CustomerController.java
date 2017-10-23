@@ -1,5 +1,6 @@
 package com.ntech.controller;
 
+import com.mongodb.util.JSON;
 import com.ntech.demo.ConnectionSDK;
 import com.ntech.forward.Constant;
 import com.ntech.demo.HttpUploadFile;
@@ -11,8 +12,10 @@ import com.ntech.service.inf.ICustomerService;
 import com.ntech.service.inf.ILibraryService;
 import com.ntech.service.inf.ISetMealService;
 import com.ntech.util.CommonUtil;
+import com.ntech.util.PayUtil;
 import com.ntech.util.PictureShow;
 import com.ntech.util.SHAencrypt;
+import com.pingplusplus.model.Charge;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,12 +28,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import javax.imageio.ImageIO;
 import javax.mail.MessagingException;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.security.PublicKey;
 import java.util.*;
 import java.util.List;
 
@@ -831,15 +838,92 @@ public class CustomerController {
 
         return jsonArray;
     }
+    //创建订单
+    @RequestMapping("creatCharge")
+    @ResponseBody
+    public Charge Creat(int  value, String type,String channel,int amount){
+        Charge charge= PayUtil.createCharge(1000,"alipay_pc_direct");
 
 
+        return charge;
+
+    }
+    //撤销订单
+    public Charge reserve(String id){
+        Charge charge=PayUtil.reverse(id);
+
+
+        return  charge;
+    }
+    //查询订单
+    public Charge retrieve(String id){
+
+        return PayUtil.retrieve(id);
+    }
     private Date count(int value) {
         GregorianCalendar gc = new GregorianCalendar();
         gc.setTime(new Date());
         gc.add(2, value);
         return gc.getTime();
     }
+    @RequestMapping(value = "webhooks")
+    @ResponseBody
+    public void webhooks ( HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException  {
+       /*System.out.println("ping++　webhooks");*/
+        request.setCharacterEncoding("UTF8");
+        //获取头部所有信息
+        Enumeration headerNames = request.getHeaderNames();
+        String signature=null;
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = request.getHeader(key);
+            if("x-pingplusplus-signature".equals(key)){
+                signature=value;
+            }
+        }
+       /*System.out.println("signature"+signature);*/
+        // 获得 http body 内容
+        StringBuffer eventJson=new StringBuffer();
+        BufferedReader reader= null;
+        try {
+            reader = request.getReader();
+            do{
+                eventJson.append(reader.readLine());
+            }while(reader.read()!=-1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        reader.close();
+        JSONObject event= (JSONObject) JSON.parse(eventJson.toString());
+        boolean verifyRS=false;
+        try {
+            PublicKey publicKey= PayUtil.getPublicKey();
+         /*  System.out.println(publicKey);*/
+            verifyRS=PayUtil.verifyData(eventJson.toString(),signature,publicKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        if(verifyRS) {
+            //支付成功
+            System.out.println();
+            if ("charge.succeeded".equals(event.get("type"))) {
+                JSONObject data = (JSONObject) JSON.parse(event.get("data").toString());
+                JSONObject object = (JSONObject) JSON.parse(data.get("object").toString());
+                String orderId = (String) object.get("order_no");
+                String channel = (String) object.get("channel");
+                String payType = null;
+                int amountFen = (int) object.get("amount");
+                Double amountYuan = amountFen * 1.0 / 100;//ping++扣款,精确到分，而数据库精确到元
+                Double weiXinInput = null;
+                Double aliPayInput = null;
+                Double bankCardInput = null;
+                response.setStatus(200);
+            }
+        }else{
+            response.setStatus(500);
+        }
+    }
     //创建颜色
     Color getRandColor(int fc, int bc) {
         Random random = new Random();
