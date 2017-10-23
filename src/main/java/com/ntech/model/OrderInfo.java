@@ -16,6 +16,10 @@ public class OrderInfo extends OrderInfoKey {
 
     private Date refundsTime;
 
+    private String contype;
+
+    private Integer value;
+
     public String getMethod() {
         return method;
     }
@@ -62,5 +66,21 @@ public class OrderInfo extends OrderInfoKey {
 
     public void setRefundsTime(Date refundsTime) {
         this.refundsTime = refundsTime;
+    }
+
+    public String getContype() {
+        return contype;
+    }
+
+    public void setContype(String contype) {
+        this.contype = contype == null ? null : contype.trim();
+    }
+
+    public Integer getValue() {
+        return value;
+    }
+
+    public void setValue(Integer value) {
+        this.value = value;
     }
 }

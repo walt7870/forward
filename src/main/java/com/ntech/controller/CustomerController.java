@@ -883,30 +883,25 @@ public class CustomerController {
         }
        /*System.out.println("signature"+signature);*/
         // 获得 http body 内容
-        StringBuffer eventJson=new StringBuffer();
-        BufferedReader reader= null;
-        try {
-            reader = request.getReader();
-            do{
-                eventJson.append(reader.readLine());
-            }while(reader.read()!=-1);
-        } catch (IOException e) {
-            e.printStackTrace();
+        Enumeration bodyNames=request.getParameterNames();
+        JSONObject event=new JSONObject();
+        while(bodyNames.hasMoreElements()) {
+            String key = (String) bodyNames.nextElement();
+            String value = request.getParameter(key);
+            event.put(key, value);
         }
-        reader.close();
-        JSONObject event= (JSONObject) JSON.parse(eventJson.toString());
         boolean verifyRS=false;
         try {
             PublicKey publicKey= PayUtil.getPublicKey();
          /*  System.out.println(publicKey);*/
-            verifyRS=PayUtil.verifyData(eventJson.toString(),signature,publicKey);
+            verifyRS=PayUtil.verifyData(event.toJSONString(),signature,publicKey);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        logger.info("result:"+verifyRS);
         if(verifyRS) {
             //支付成功
-            System.out.println();
+//            System.out.println();
             if ("charge.succeeded".equals(event.get("type"))) {
                 JSONObject data = (JSONObject) JSON.parse(event.get("data").toString());
                 JSONObject object = (JSONObject) JSON.parse(data.get("object").toString());

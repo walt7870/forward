@@ -615,6 +615,136 @@ public class OrderInfoExample {
             addCriterion("refunds_time not between", value1, value2, "refundsTime");
             return (Criteria) this;
         }
+
+        public Criteria andContypeIsNull() {
+            addCriterion("contype is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeIsNotNull() {
+            addCriterion("contype is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeEqualTo(String value) {
+            addCriterion("contype =", value, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeNotEqualTo(String value) {
+            addCriterion("contype <>", value, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeGreaterThan(String value) {
+            addCriterion("contype >", value, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeGreaterThanOrEqualTo(String value) {
+            addCriterion("contype >=", value, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeLessThan(String value) {
+            addCriterion("contype <", value, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeLessThanOrEqualTo(String value) {
+            addCriterion("contype <=", value, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeLike(String value) {
+            addCriterion("contype like", value, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeNotLike(String value) {
+            addCriterion("contype not like", value, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeIn(List<String> values) {
+            addCriterion("contype in", values, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeNotIn(List<String> values) {
+            addCriterion("contype not in", values, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeBetween(String value1, String value2) {
+            addCriterion("contype between", value1, value2, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andContypeNotBetween(String value1, String value2) {
+            addCriterion("contype not between", value1, value2, "contype");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueIsNull() {
+            addCriterion("value is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueIsNotNull() {
+            addCriterion("value is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueEqualTo(Integer value) {
+            addCriterion("value =", value, "value");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueNotEqualTo(Integer value) {
+            addCriterion("value <>", value, "value");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueGreaterThan(Integer value) {
+            addCriterion("value >", value, "value");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueGreaterThanOrEqualTo(Integer value) {
+            addCriterion("value >=", value, "value");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLessThan(Integer value) {
+            addCriterion("value <", value, "value");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLessThanOrEqualTo(Integer value) {
+            addCriterion("value <=", value, "value");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueIn(List<Integer> values) {
+            addCriterion("value in", values, "value");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueNotIn(List<Integer> values) {
+            addCriterion("value not in", values, "value");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueBetween(Integer value1, Integer value2) {
+            addCriterion("value between", value1, value2, "value");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueNotBetween(Integer value1, Integer value2) {
+            addCriterion("value not between", value1, value2, "value");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

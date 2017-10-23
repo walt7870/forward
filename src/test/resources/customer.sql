@@ -60,7 +60,26 @@ create table order_info
   order_time DATETIME,
   pay_time DATETIME,
   refunds_time DATETIME,
+  contype varchar(5),
+  value int,
   primary key(order_id,user_name)
 )engine=innodb default charset=utf8;
+
+# drop table if exists detail_info;
+# create table detail_info
+# (
+#   order_id varchar(32) not null,
+#   user_name varchar(32) not null,
+#   method varchar(16),
+#   amount decimal(12,2),
+#   status tinyint,
+#   order_time DATETIME,
+#   pay_time DATETIME,
+#   refunds_time DATETIME,
+#   contype varchar(5),
+#   value int,
+#   primary key(order_id,user_name)
+# )engine=innodb default charset=utf8;
+
 
 insert into customer values('admin','d033e22ae348aeb5660fc2140aec35850c4da997','',1,'admin@admin.com','','2017-08-23 15:58:07',0);

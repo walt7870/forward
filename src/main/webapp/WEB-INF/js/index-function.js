@@ -340,6 +340,10 @@ var leftUploadFileCol;
 var rightUploadFileCol;
 
 function verifyUrlCol(id) {
+    if($("#inputUrlCol" + id).val()==""){
+        alert("url不能未空");
+        return false;
+    }
     verifyReqCol($("#inputUrlCol" + id).val(), id);
 }
 
@@ -723,6 +727,10 @@ var rightUploadFile
 
 //人脸对比url处理
 function verifyUrl(id) {
+    if($("#inputUrl" + id).val()==""){
+        alert("url不能未空");
+        return false;
+    }
     verifyReq($("#inputUrl" + id).val(), id);
 }
 
