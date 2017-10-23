@@ -95,28 +95,31 @@ $(document).ready(function() {
             return false
         }
         $.ajax({
-            url:'setMealBuy',
-            type: 'POST',
-            dataType: "json",
-            async:false,
+            type:"post",
+            url:"creatCharge",
+            dataType:"json",
             data:{
                 "type":type,
                 "value":value
             },
+            async:false,
             success:function (data) {
-                if(data){
-                    alert("购买成功！")
-                    $("#msg").text("购买成功");
-                }else{
-                    alert("你选择的套餐与之前购买的套餐不一样")
-                    $("#msg").text("购买失败");
-                }
-            },
-            error:function (data) {
-                alert(data)
+                pingpp.createPayment(data, function(result, err){
+                    console.log(result);
+                    console.log(err.msg);
+                    console.log(err.extra);
+                    if (result == "success") {
+
+                        // 只有微信公众账号 wx_pub 支付成功的结果会在这里返回，其他的支付结果都会跳转到 extra 中对应的 URL。
+                    } else if (result == "fail") {
+                        // charge 不正确或者微信公众账号支付失败时会在此处返回
+                    } else if (result == "cancel") {
+                        // 微信公众账号支付取消支付
+                    }
+                });
+
             }
         })
-
     });
 
 

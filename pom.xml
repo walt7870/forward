@@ -37,7 +37,13 @@
     <skipTests>true</skipTests>
 
   </properties>
-
+  <distributionManagement>
+  <repository>
+    <id>central</id>
+    <name>bintray</name>
+    <url>http://jcenter.bintray.com</url>
+  </repository>
+    </distributionManagement>
 
   <dependencies>
     <!-- 添加jstl依赖 -->
@@ -46,7 +52,14 @@
       <artifactId>jstl</artifactId>
       <version>1.2</version>
     </dependency>
-
+    <!--ping++-->
+    <dependency>
+      <groupId>Pingplusplus</groupId>
+      <artifactId>pingpp-java</artifactId>
+      <version>2.2.4</version>
+      <!--请将 VERSION 换成 SDK 对应的版本号，如：2.2.4-->
+      <type>jar</type>
+    </dependency>
     <!-- 添加junit4依赖 -->
     <dependency>
       <groupId>junit</groupId>
@@ -108,7 +121,6 @@
       <artifactId>spring-test</artifactId>
       <version>${spring.version}</version>
     </dependency>
-
     <!-- 添加mybatis依赖 -->
     <dependency>
       <groupId>org.mybatis</groupId>

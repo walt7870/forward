@@ -54,17 +54,17 @@ $(document).ready(function () {
                     fileContent.value = "";
                     return false;
                 } else {
-                    let file = fileContent.files[0];
+                    var file = fileContent.files[0];
                     if (!file) {
                         return false;
                     }
-                    let reader = new FileReader();
+                    var reader = new FileReader();
 
                     reader.onload = function (e) {
-                        let imgUrl = e.target.result;
+                        var imgUrl = e.target.result;
                         getImageWidth(imgUrl, function (widthImg, heightImg) {
                             while (widthImg >= 4000 || heightImg >= 4000) {
-                                let imgShow = new Image;
+                                var imgShow = new Image;
                                 imgShow.src=imgUrl
                                 PicBaseText = compress(imgShow, widthImg * 0.5, heightImg * 0.5, 1);
                                 widthImg = widthImg * 0.5;
@@ -72,7 +72,7 @@ $(document).ready(function () {
                                 file = dataURItoBlob(PicBaseText);
                             }
                             fileContent.value="";
-                            let formData = new FormData();
+                            var formData = new FormData();
                             formData.append("meta", metaName);
                             formData.append("mf_selector", "all");
                             formData.append("photo", file);
@@ -279,22 +279,22 @@ $(document).ready(function () {
                 }
 
 
-                let reader = new FileReader();
+                var reader = new FileReader();
                 reader.onloadend = function (e) {
-                    let imgUrl= e.target.result;
+                    var imgUrl= e.target.result;
                     imgShow.src = imgUrl;
                     getImageWidth(imgUrl,function (widthImg,heightImg) {
                         setPicSize(imgUrl);
 
                         //图片的宽或高大于4000时使用canvas对图片进行重绘制
                         while(widthImg>=4000||heightImg>=4000){
-                            let PicBaseText=compress(imgShow,widthImg*0.5,heightImg*0.5,1);
+                            var PicBaseText=compress(imgShow,widthImg*0.5,heightImg*0.5,1);
                             widthImg=widthImg*0.5;
                             heightImg=heightImg*0.5;
                             file=dataURItoBlob(PicBaseText);
                         }
 
-                        let formData = new FormData();
+                        var formData = new FormData();
                         formData.append("photo", file);
                         img.value = "";
                         $.ajax({
@@ -460,11 +460,11 @@ function syntaxHighlight(json) {
 
 //将base64图片转成input能处理的二进制流
 function dataURItoBlob(dataURI) {
-    let byteString = atob(dataURI.split(',')[1]);
-    let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-    let ab = new ArrayBuffer(byteString.length);
-    let ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
+    var byteString = atob(dataURI.split(',')[1]);
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    var ab = new ArrayBuffer(byteString.length);
+    var ia = new Uint8Array(ab);
+    for (var i = 0; i < byteString.length; i++) {
         ia[i] = byteString.charCodeAt(i);
     }
     console.log([ab]);

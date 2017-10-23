@@ -225,8 +225,8 @@ public class AdminController {
 //            if (customerService.modify(customer) == 1) {
 //                logger.info("customer update success");
 //                mav.setViewName("customer");
-//                session.setAttribute("customerList", customerService.findAll());
-//                return mav;
+//               session.setAttribute("customerList", customerService.findAll());
+//                 return mav;
 //            }
 //        }
 //        mav.setViewName("error");
@@ -510,5 +510,53 @@ public class AdminController {
         }
 
         return true;
+    }
+    @RequestMapping("apiChart")
+    @ResponseBody
+    /***
+     *param session 域对象
+     * return 各种api调用的次数的json数据
+     */
+    public JSONObject getApiData(HttpSession session){
+        logger.info("get  api chart data ");
+        JSONObject jsonObject=new JSONObject();
+        String name=(String) session.getAttribute("name");
+        int countDetect=0;
+        int countIdentify=0;
+        int countVerify=0;
+        int countFace=0;
+        // 根据session中的name判断查询权限
+        if(!"".equals(name)&&name!=null){
+            //根据姓名查出此人的使用api的日志
+            List<Log> logList=logService.findByName(name);
+            /*
+             * 集合有三种遍历方式  传统for循环方式遍历最快，并发的时候有问题
+             *迭代器性能稍差，但它是线程安全的 删除的时候只能用迭代器的remove方法
+             * for each 性能最差，不建议使用
+             */
+            for(int i=0;i<logList.size();i++){
+                Log log=logList.get(i);
+                String content=log.getContent();
+                if(content.contains("detect")){
+                    countDetect++;
+                }
+                if (content.contains("identify")){
+                    countIdentify++;
+                }
+                if (content.contains("verify")){
+                    countVerify++;
+                }
+                if (content.contains("face")){
+                    countFace++;
+                }
+            }
+
+        }
+        // 将数据存入jsonObject中
+        jsonObject.put("detect",countDetect);
+        jsonObject.put("verify",countVerify);
+        jsonObject.put("identify",countIdentify);
+        jsonObject.put("face",countFace);
+        return jsonObject;
     }
 }

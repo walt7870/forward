@@ -149,7 +149,7 @@
                         <div class="img_bgbox2" reveal_sign="width">
                             <div  class="detect_img2">
                                 <div id="imgShowDetectDiv" style="position: relative;height: 100%;width: 100%;">
-                                <img id="imgShowDetect" src="http://yun.anytec.cn:8080/img/index/two/max_img1.png">
+                                    <img id="imgShowDetect" src="http://yun.anytec.cn:8080/img/index/two/max_img1.png">
                                 </div>
                             </div>
                         </div>
@@ -412,10 +412,10 @@
                             <div onclick="searchUrlDemo(this)" class="detect_btn4">检测</div>
                         </div>
                         <div class="faBox">
-                        				<div class="fa_text">设置阀值：</div>
-                        				<div class="fa_input"><input min="0" max="100" type="range" id="threshold"></div>
-                        				<div class="fa_value"><input id="confidence" type="text" value="0.5"/></div>
-                        			</div>
+                            <div class="fa_text">设置阀值：</div>
+                            <div class="fa_input"><input min="0" max="100" type="range" id="threshold"></div>
+                            <div class="fa_value"><input id="confidence" type="text" value="0.5"/></div>
+                        </div>
                         <div class="detect_minimg4">
                             <div class="detect_fiveimg4"><img onclick="searchReqDemo(this)" src="http://yun.anytec.cn:8080/img/index/two/max_img1.png"></div>
                             <div class="detect_fiveimg4"><img onclick="searchReqDemo(this)" class="img_active" src="http://yun.anytec.cn:8080/img/index/two/max_img2.png"></div>
@@ -434,24 +434,24 @@
                         </div>
                         <div id="resultShowSearchDemo" class="code_text4">
                             <%--<div class="results_graphic4">--%>
-                                <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img1.png"></div>--%>
-                                <%--<div class="graphic_text">结果1</div>--%>
+                            <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img1.png"></div>--%>
+                            <%--<div class="graphic_text">结果1</div>--%>
                             <%--</div>--%>
                             <%--<div class="results_graphic4">--%>
-                                <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img2.png"></div>--%>
-                                <%--<div class="graphic_text">结果2</div>--%>
+                            <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img2.png"></div>--%>
+                            <%--<div class="graphic_text">结果2</div>--%>
                             <%--</div>--%>
                             <%--<div class="results_graphic4">--%>
-                                <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img3.png"></div>--%>
-                                <%--<div class="graphic_text">结果3</div>--%>
+                            <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img3.png"></div>--%>
+                            <%--<div class="graphic_text">结果3</div>--%>
                             <%--</div>--%>
                             <%--<div class="results_graphic4">--%>
-                                <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img4.png"></div>--%>
-                                <%--<div class="graphic_text">结果4</div>--%>
+                            <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img4.png"></div>--%>
+                            <%--<div class="graphic_text">结果4</div>--%>
                             <%--</div>--%>
                             <%--<div class="results_graphic4">--%>
-                                <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img5.png"></div>--%>
-                                <%--<div class="graphic_text">结果5</div>--%>
+                            <%--<div class="graphic_img4" reveal_sign="width"><img src="img/index/four/results_img5.png"></div>--%>
+                            <%--<div class="graphic_text">结果5</div>--%>
                             <%--</div>--%>
                         </div>
                     </div>
@@ -554,7 +554,7 @@
             </div>
             <!--底部版权-->
             <div class="copyright6"><div class="copyright6_1">Copyright 2017 All Right Reserved 深圳市恩钛控股有限公司  ICP:08118166 网站地图</div>
-            <div class="copyright6_2">地址：深圳市南山区粤海街道高新南七道高新工业村018号R3-A座四层</div>
+                <div class="copyright6_2">地址：深圳市南山区粤海街道高新南七道高新工业村018号R3-A座四层</div>
             </div>
         </div>
     </div>

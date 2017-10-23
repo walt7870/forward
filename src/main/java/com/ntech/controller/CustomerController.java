@@ -1,9 +1,9 @@
 package com.ntech.controller;
 
 import com.ntech.demo.ConnectionSDK;
+import com.ntech.demo.MethodUtil;
 import com.ntech.forward.Constant;
 import com.ntech.demo.HttpUploadFile;
-import com.ntech.demo.MethodUtil;
 import com.ntech.model.Customer;
 import com.ntech.model.LibraryKey;
 import com.ntech.model.SetMeal;
@@ -808,7 +808,7 @@ public class CustomerController {
 
         return jsonArrayResult;
     }
-  //包装返回的请求
+    //包装返回的请求
     private JSONArray wrapResponse(String result) {
         JSONObject jsonResult = null;
         JSONArray jsonArray = null;
@@ -816,7 +816,7 @@ public class CustomerController {
             logger.info(result);
             jsonResult = (JSONObject) new JSONParser().parse(result);
             jsonArray = (JSONArray) jsonResult.get("results");
-             for (int i = 0; i < jsonArray.size(); i++) {
+            for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject tmpJson = (JSONObject) jsonArray.get(i);
                 String tmpStrng = (String) tmpJson.get("normalized");
 //                tmpStrng = "http://192.168.10.208" + tmpStrng.substring(16);

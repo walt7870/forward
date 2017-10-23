@@ -1,40 +1,40 @@
 //上传图片探测
 function uploadPicDetect(obj) {
     // var img = document.getElementById("imgShowDetectDiv");
-    for (let i = 0; i < num; i++) {
+    for (var i = 0; i < num; i++) {
         if ($('#detect' + i).length > 0) {
             $('#detect' + i).remove();
         }
     }
     //遍历属性复选框得到被选中的表情
-    let attributeCheckedUpload = [];
+    var attributeCheckedUpload = [];
     $('input[name="attribute"]:checked').each(function(){
         console.log($(this).val());
         attributeCheckedUpload.push($(this).val());
     });
 
-    let file = obj.files[0];
-    let reader = new FileReader();
+    var file = obj.files[0];
+    var reader = new FileReader();
     reader.onload = function (e) {
         var imgUrl=e.target.result;
         $("#imgShowDetect").attr("src", imgUrl);
         //等待图片加载完成后执行回调函数
         getImageWidth(imgUrl,function (widthImg,heightImg) {
-            let imgShow = document.getElementById("imgShowDetect");
+            var imgShow = document.getElementById("imgShowDetect");
             while(widthImg>=4000||heightImg>=4000){
-                let PicBaseText=compress(imgShow,widthImg*0.5,heightImg*0.5,1);
+                var PicBaseText=compress(imgShow,widthImg*0.5,heightImg*0.5,1);
                 widthImg=widthImg*0.5;
                 heightImg=heightImg*0.5;
                 file=dataURItoBlob(PicBaseText);
             }
             resizePic(imgShow,widthImg,heightImg);
-            let detectForm = new FormData();
+            var detectForm = new FormData();
             detectForm.append("photo", file);
 
             //清除input框的状态
             obj.value = "";
             //将页面选中的人脸属性添加到请求参数中
-            for (let inx in attributeCheckedUpload) {
+            for (var inx in attributeCheckedUpload) {
                 detectForm.append(attributeCheckedUpload[inx], "true");
             }
 
@@ -46,7 +46,7 @@ function uploadPicDetect(obj) {
                 contentType: false,
                 async: true,
                 success: function (data) {
-                    let dataObj=eval('(' + data + ')')
+                    var dataObj=eval('(' + data + ')')
                     if (data === ""||dataObj['faces'].length===0) {
                         $('#responseDetect').html("文件格式不符或文件太大,支持png,jpeg,jpg,webp格式的图片");
                         $('#faceProperties').html("文件格式不符或文件太大,支持png,jpeg,jpg,webp格式的图片");
@@ -73,11 +73,11 @@ function uploadPicDetect(obj) {
 
 //将base64图片转成input能处理的二进制流
 function dataURItoBlob(dataURI) {
-    let byteString = atob(dataURI.split(',')[1]);
-    let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-    let ab = new ArrayBuffer(byteString.length);
-    let ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
+    var byteString = atob(dataURI.split(',')[1]);
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    var ab = new ArrayBuffer(byteString.length);
+    var ia = new Uint8Array(ab);
+    for (var i = 0; i < byteString.length; i++) {
         ia[i] = byteString.charCodeAt(i);
     }
     console.log([ab]);
@@ -124,7 +124,7 @@ function resizePic(imgShow,widthImg,heightImg){
 var num = 0;
 
 function detectUrl() {
-    let inputUrl=$("#inputUrlDetect").val();
+    var inputUrl=$("#inputUrlDetect").val();
     if(inputUrl.length=0||inputUrl==""){
         alert("url不能为空");
         return false;
@@ -135,22 +135,22 @@ function detectUrl() {
 
 //url图片探测,并画人脸div
 function detectReq(imgUrl) {
-    let imgShow = document.getElementById("imgShowDetect");
+    var imgShow = document.getElementById("imgShowDetect");
     imgShow.style.height="100%";
     imgShow.style.width="100%";
-    for (let i = 0; i < num; i++) {
+    for (var i = 0; i < num; i++) {
         if ($('#detect' + i).length > 0) {
             $('#detect' + i).remove();
         }
     }
-    let file;
+    var file;
     imgShow.src=imgUrl
     getImageWidth(imgUrl,function (widthImg,heightImg) {
         // while(widthImg>=4000||heightImg>=4000){
-        //     // let localImg = new Image;
+        //     // var localImg = new Image;
         //     // localImg.src=imgUrl
         //     // localImg.crossOrigin = "anonymous";
-        //     let PicBaseText=compress(localImg,widthImg*0.5,heightImg*0.5,1);
+        //     var PicBaseText=compress(localImg,widthImg*0.5,heightImg*0.5,1);
         //     widthImg=widthImg*0.5;
         //     heightImg=heightImg*0.5;
         //     file=dataURItoBlob(PicBaseText);
@@ -198,7 +198,7 @@ function detectReq(imgUrl) {
 //画人脸div
 function handleData(data,widthImg,heightImg) {
     $('#responseDetect').html(syntaxHighlight(data))
-    let imgSrc = $('#imgShowDetect').attr("src");
+    var imgSrc = $('#imgShowDetect').attr("src");
     getImageWidth(imgSrc, function (w, h) {
         if(widthImg!=null){
             w=widthImg;
@@ -210,14 +210,14 @@ function handleData(data,widthImg,heightImg) {
 
         hratew = img.height / img.width;
 
-        let widthRate = img.width / w;
-        let heightRate = img.height / h;
-        let dataObj = eval(data);
-        let rect;
-        let results = [];
+        var widthRate = img.width / w;
+        var heightRate = img.height / h;
+        var dataObj = eval(data);
+        var rect;
+        var results = [];
         if (dataObj.hasOwnProperty("faces")) {
             rect = dataObj['faces'];
-            for (let i = 0; i < rect.length; i++) {
+            for (var i = 0; i < rect.length; i++) {
                 rect[i].x1 = rect[i].x1 * widthRate;
                 rect[i].x2 = rect[i].x2 * widthRate;
                 rect[i].y1 = rect[i].y1 * heightRate;
@@ -226,7 +226,7 @@ function handleData(data,widthImg,heightImg) {
                 height = (rect[i].y2 - rect[i].y1) * 0.9;
                 left = rect[i].x1 + width * 0.15;
                 divtop = rect[i].y1 + 2;
-                let result = new Result(width, height, left, divtop);
+                var result = new Result(width, height, left, divtop);
                 results[i] = result;
                 // console.log(results);
             }
@@ -256,9 +256,9 @@ function handleData(data,widthImg,heightImg) {
 }
 
 function emotionReflect(emotion) {
-    // let emotionArray = emotion+"".split(",");
-    let returnArray=[];
-    for(let i = 0; i< emotion.length;i++)
+    // var emotionArray = emotion+"".split(",");
+    var returnArray=[];
+    for(var i = 0; i< emotion.length;i++)
     {
         switch (emotion[i])
         {
@@ -317,7 +317,7 @@ function checkProperties(data) {
         }
         if (faceData[single] ['gender']) {
             status = true
-            let genderTra=faceData[single]['gender']=="male"?"男":"女"
+            var genderTra=faceData[single]['gender']=="male"?"男":"女"
             elementData.push("<p>性别:" + genderTra + "</p>");
         }
         if(elementData.length>0){
@@ -344,19 +344,19 @@ function verifyUrlCol(id) {
 }
 
 function uploadPicVerifyCol(obj, id) {
-    let threshold =$("#confCol").val();
+    var threshold =$("#confCol").val();
     if(threshold>0&&threshold<=1) {
         document.getElementById("imgShowCol" + id).style.height = "100%";
         document.getElementById("imgShowCol" + id).style.width = "100%";
         removeDivCol();
-        let img = document.getElementById("imgShowCol" + id);
-        let file = obj.files[0];
+        var img = document.getElementById("imgShowCol" + id);
+        var file = obj.files[0];
         if (!file) {
             return false;
         }
-        let reader = new FileReader();
+        var reader = new FileReader();
         reader.onloadend = function (e) {
-            let imgUrl = e.target.result
+            var imgUrl = e.target.result
             getImageWidth(imgUrl, function (widthImg, heightImg) {
                 var imgShowDiv = document.getElementById("picDivCol" + id);
                 var imgShow = document.getElementById("imgShowCol" + id);
@@ -731,20 +731,20 @@ function uploadPicVerify(obj, id) {
     document.getElementById("imgShow" + id).style.height="100%";
     document.getElementById("imgShow" + id).style.width="100%";
     removeDiv()
-    let img = document.getElementById("imgShow" + id)
-    let file = obj.files[0];
+    var img = document.getElementById("imgShow" + id)
+    var file = obj.files[0];
     if(!file){
         return false;
     }
-    let reader = new FileReader();
+    var reader = new FileReader();
     reader.onloadend = function (e) {
-        let imgUrl=e.target.result
+        var imgUrl=e.target.result
         $("#imgShow" + id).attr("src", imgUrl)
         getImageWidth(imgUrl,function (widthImg,heightImg) {
-            let imgShow = document.getElementById("imgShow" + id);
+            var imgShow = document.getElementById("imgShow" + id);
             //根据图片比例调整原图大小
             resizePic(imgShow,widthImg,heightImg);
-            let PicBaseText;
+            var PicBaseText;
             if(id===1){
                 leftUploadFile=file;
             }
@@ -768,8 +768,8 @@ function uploadPicVerify(obj, id) {
 
 
             another=id==1?2:1;
-            let imgAno = document.getElementById("imgShow" + another)
-            let formData = new FormData();
+            var imgAno = document.getElementById("imgShow" + another)
+            var formData = new FormData();
             if(imgAno.src.indexOf("data:image")===0||imgAno.src.indexOf("data:;base64")===0){
                 formData.append("photo1", file);
                 if(id===1) {
@@ -793,7 +793,7 @@ function uploadPicVerify(obj, id) {
                 contentType: false,
                 async: true,
                 success: function (data) {
-                    let dataObj=eval('(' + data + ')');
+                    var dataObj=eval('(' + data + ')');
                     if(data===""){
                         $("#resultVerify").html("有图片未检测到人脸");
                         $("#reponseVerify").html("有图片未检测到人脸");
@@ -826,20 +826,20 @@ function readResData(data,id,widthImg,heightImg) {
     removeDiv()
     console.log(data);
     //读取返回的json数据
-    let dataObj = eval(data);
+    var dataObj = eval(data);
     $('#reponseVerify').html(syntaxHighlight(data))
-    let confidence = dataObj['results']['0']['confidence'];
-    let val = dataObj['verified'];
+    var confidence = dataObj['results']['0']['confidence'];
+    var val = dataObj['verified'];
     //第一个正方形框
-    let rect1 = dataObj['results']['0']['bbox1'];
+    var rect1 = dataObj['results']['0']['bbox1'];
     //第二个正方形框
-    let rect2 = dataObj['results']['0']['bbox2'];
+    var rect2 = dataObj['results']['0']['bbox2'];
 
 
     // console.log(rect1);
     // console.log(rect2);
-    let imgshow1=document.getElementById("imgShow1");
-    let imgshow2=document.getElementById("imgShow2");
+    var imgshow1=document.getElementById("imgShow1");
+    var imgshow2=document.getElementById("imgShow2");
     if(id==1){
         getImageWidth(imgshow1.src,function (w,h) {
             if(widthImg){
@@ -874,19 +874,19 @@ function readResData(data,id,widthImg,heightImg) {
 
 //人脸对比画人脸div
 function drawDiv(image,w,h,result,parentId){
-    // let imgVerifyDiv = document.getElementById(parentId);
-    let widthRate = image.width / w;
-    let heightRate = image.height / h;
+    // var imgVerifyDiv = document.getElementById(parentId);
+    var widthRate = image.width / w;
+    var heightRate = image.height / h;
     result.x1 = result.x1 * widthRate;
     result.x2 = result.x2 * widthRate;
     result.y1 = result.y1 * heightRate;
     result.y2 = result.y2 * heightRate;
 
-    let width = (result.x2 - result.x1) * 0.8;
-    let height = (result.y2 - result.y1) * 0.9;
-    let left = result.x1 + width * 0.15;
-    let divtop = result.y1 + 2;
-    let picId=image.id+"1";
+    var width = (result.x2 - result.x1) * 0.8;
+    var height = (result.y2 - result.y1) * 0.9;
+    var left = result.x1 + width * 0.15;
+    var divtop = result.y1 + 2;
+    var picId=image.id+"1";
     $('#'+parentId).prepend("<div id='"+picId + "'></div>");
     // $('#picShow2').prepend("<div id=" + id + "></div>");
     $('#' + picId).css({
@@ -907,8 +907,8 @@ function verifyReq(imgUrl, id) {
     document.getElementById("imgShow" + id).style.width="100%";
     removeDiv()
     getImageWidth(imgUrl,function (widthImg,heightImg) {
-        let imgShowDiv = document.getElementById("picDiv"+id);
-        let imgShow = document.getElementById("imgShow" + id);
+        var imgShowDiv = document.getElementById("picDiv"+id);
+        var imgShow = document.getElementById("imgShow" + id);
         console.log("height:"+heightImg)
         console.log("widht:"+widthImg)
         console.log(imgShowDiv.offsetHeight)
@@ -926,10 +926,10 @@ function verifyReq(imgUrl, id) {
             imgShow.style.width="100%"
         }
         $("#imgShow" + id).attr("src",imgUrl);
-        let notId=id==1?2:1
-        let selfImg = document.getElementById("imgShow" + id)
-        let anotherImg = document.getElementById("imgShow" + notId)
-        let formData = new FormData();
+        var notId=id==1?2:1
+        var selfImg = document.getElementById("imgShow" + id)
+        var anotherImg = document.getElementById("imgShow" + notId)
+        var formData = new FormData();
         if(anotherImg.src.indexOf("data:image")==0||anotherImg.src.indexOf("data:;base64")==0){
             formData.append("photo1", selfImg.src)
             if(id==1) {
@@ -952,7 +952,7 @@ function verifyReq(imgUrl, id) {
             contentType: false,
             async: true,
             success: function (data) {
-                let dataObj=eval('(' + data + ')');
+                var dataObj=eval('(' + data + ')');
                 if(data==""||dataObj.length==0){
                     $("#resultVerify").html("有图片未检测到人脸");
                     $("#reponseVerify").html("有图片未检测到人脸");
