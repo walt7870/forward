@@ -1,15 +1,16 @@
 package com.ntech.controller;
 
-import com.mongodb.util.JSON;
 import com.ntech.demo.ConnectionSDK;
-import com.ntech.forward.Constant;
 import com.ntech.demo.HttpUploadFile;
 import com.ntech.demo.MethodUtil;
+import com.ntech.forward.Constant;
 import com.ntech.model.Customer;
 import com.ntech.model.LibraryKey;
+import com.ntech.model.OrderInfo;
 import com.ntech.model.SetMeal;
 import com.ntech.service.inf.ICustomerService;
 import com.ntech.service.inf.ILibraryService;
+import com.ntech.service.inf.IOrderInfoService;
 import com.ntech.service.inf.ISetMealService;
 import com.ntech.util.CommonUtil;
 import com.ntech.util.PayUtil;
@@ -23,9 +24,11 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
 import javax.imageio.ImageIO;
 import javax.mail.MessagingException;
 import javax.servlet.ServletException;
@@ -34,9 +37,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.List;
@@ -60,6 +62,8 @@ public class CustomerController {
     @Autowired
     ILibraryService libraryService;
 
+    @Autowired
+    IOrderInfoService orderInfoService;
     @RequestMapping("/register")
     public String jumpToRegister() {
         logger.info("jump to register page");
@@ -614,26 +618,13 @@ public class CustomerController {
 //    }
 
 
-    @RequestMapping("setMealBuy")
-    @ResponseBody
-    public boolean setMeal(HttpSession session, @RequestParam("type") String type, @RequestParam("value") String value) {
-        String name = (String) session.getAttribute("name");
-        if (null != name) {
-            if ("".equals(name) || null == type || "".equals(type) || null == value || "".equals(value)) {
-                return false;
-            }
-            if (!(type.equals("date") || type.equals("times"))) {
-                return false;
-            }
-            if (!customerService.checkUserName(name)) {
-                logger.error("username is not exist");
-                return false;
-            }
 
-            int intValue = Integer.parseInt(value);
+    private boolean setMeal(  String type,  int value,String name) {
+
+            int intValue = value;
             SetMeal setMeal = new SetMeal();
-            setMeal.setUserName(name);
             setMeal.setContype(type);
+            setMeal.setUserName(name);
 
             //找出数据库中的订单
             SetMeal meal = setMealService.findByName(setMeal.getUserName());
@@ -664,8 +655,8 @@ public class CustomerController {
             if (setMealService.add(setMeal)) {
                 return true;
             }
-        }
-        return false;
+          return false;
+
     }
 
 
@@ -841,18 +832,44 @@ public class CustomerController {
     //创建订单
     @RequestMapping("creatCharge")
     @ResponseBody
-    public Charge Creat(int  value, String type,String channel,int amount){
-        Charge charge= PayUtil.createCharge(1000,"alipay_pc_direct");
-
-
+    public Charge Creat(int  value, String type,String channel,int amount,HttpSession session){
+        logger.info("create charge");
+        String name=(String) session.getAttribute("name");
+        Charge charge=null;
+        if(name!=null&&!"".equals("")){
+            charge=PayUtil.createCharge(1000,"alipay_pc_direct");
+            OrderInfo orderInfo=new OrderInfo();
+            orderInfo.setAmount(BigDecimal.valueOf(charge.getAmount()*1.0/100));
+            orderInfo.setOrderId(charge.getId());
+            orderInfo.setContype(type);
+            orderInfo.setMethod(charge.getChannel());
+            orderInfo.setOrderTime(new Date());
+            orderInfo.setUserName(name);
+             //status 1 为未付款 2 为已付款  3为退款
+            orderInfo.setStatus((byte) 1);
+           boolean result=orderInfoService.createOrder(orderInfo);
+           if(result){
+               logger.info("add order success");
+           }else{
+               logger.info("add order fail");
+           }
+        }
         return charge;
 
     }
+    @RequestMapping("cancelCharge")
+    @ResponseBody
     //撤销订单
     public Charge reserve(String id){
+        logger.info("cancel charge");
         Charge charge=PayUtil.reverse(id);
 
-
+        boolean result=orderInfoService.deleteorder(id);
+       if(result){
+           logger.info("delete order success");
+       }else{
+           logger.info("delete order fail");
+       }
         return  charge;
     }
     //查询订单
@@ -860,15 +877,11 @@ public class CustomerController {
 
         return PayUtil.retrieve(id);
     }
-    private Date count(int value) {
-        GregorianCalendar gc = new GregorianCalendar();
-        gc.setTime(new Date());
-        gc.add(2, value);
-        return gc.getTime();
-    }
+
     @RequestMapping(value = "webhooks")
     @ResponseBody
-    public void webhooks ( HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException  {
+    public void webhooks ( HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, ParseException {
+        logger.info("start webHook");
        /*System.out.println("ping++　webhooks");*/
         request.setCharacterEncoding("UTF8");
         //获取头部所有信息
@@ -893,32 +906,47 @@ public class CustomerController {
         boolean verifyRS=false;
         try {
             PublicKey publicKey= PayUtil.getPublicKey();
-         /*  System.out.println(publicKey);*/
+             /*  System.out.println(publicKey);*/
             verifyRS=PayUtil.verifyData(event.toJSONString(),signature,publicKey);
         } catch (Exception e) {
+            logger.error("error happened when verify key");
             e.printStackTrace();
+
         }
         logger.info("result:"+verifyRS);
-        if(verifyRS) {
+
             //支付成功
-//            System.out.println();
             if ("charge.succeeded".equals(event.get("type"))) {
-                JSONObject data = (JSONObject) JSON.parse(event.get("data").toString());
-                JSONObject object = (JSONObject) JSON.parse(data.get("object").toString());
-                String orderId = (String) object.get("order_no");
-                String channel = (String) object.get("channel");
-                String payType = null;
-                int amountFen = (int) object.get("amount");
-                Double amountYuan = amountFen * 1.0 / 100;//ping++扣款,精确到分，而数据库精确到元
-                Double weiXinInput = null;
-                Double aliPayInput = null;
-                Double bankCardInput = null;
-                response.setStatus(200);
+                logger.info("charge success webhooks");
+                JSONObject data = (JSONObject)new JSONParser().parse(event.get("data").toString());
+                JSONObject object = (JSONObject) new JSONParser().parse(data.get("object").toString());
+                String orderId = (String) object.get("id");
+                OrderInfo orderInfo=orderInfoService.findOrderById(orderId);
+                if(orderInfo!=null) {
+                    orderInfo.setStatus((byte) 2);
+                    orderInfo.setPayTime(new Date());
+                    String type = orderInfo.getContype();
+                    int value = orderInfo.getValue();
+                    String name=orderInfo.getUserName();
+                    orderInfoService.modifyOrder(orderInfo);
+                    //调用添加套餐的逻辑
+                    setMeal(type,value,name);
+                    response.setStatus(200);
+                }else{
+                    response.setStatus(500);
+                }
+
             }
-        }else{
-            response.setStatus(500);
-        }
+
     }
+
+    private Date count(int value) {
+        GregorianCalendar gc = new GregorianCalendar();
+        gc.setTime(new Date());
+        gc.add(2, value);
+        return gc.getTime();
+    }
+
     //创建颜色
     Color getRandColor(int fc, int bc) {
         Random random = new Random();
@@ -931,4 +959,6 @@ public class CustomerController {
         int b = fc + random.nextInt(bc - fc);
         return new Color(r, g, b);
     }
+
+
 }
