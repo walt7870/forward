@@ -939,6 +939,26 @@ public class CustomerController {
         }
 
     }
+    //验证两次套餐是否相同
+    @RequestMapping("checkType")
+    @ResponseBody
+    public boolean checkType(HttpSession session,String type){
+        logger.info("checkType Start");
+        String name=(String) session.getAttribute("name");
+        if(name!=null&&!"".equals(name)) {
+            SetMeal meal = setMealService.findByName(name);
+            if (meal == null) {
+                return true;
+            } else {
+                if (meal.getContype().equals(type)) {
+                    return  true;
+                }else{
+                    return false;
+                }
+            }
+        }
+        return  false;
+    }
     private Date count(int value) {
         GregorianCalendar gc = new GregorianCalendar();
         gc.setTime(new Date());
