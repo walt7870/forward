@@ -90,38 +90,54 @@ $(document).ready(function() {
         }
         //console.log(value)
         // alert(value);
-        var sure = confirm("确认购买?")
-        if(!sure){
-            return false
-        }
         $.ajax({
             type:"post",
-            url:"creatCharge",
+            url:"checkType",
             dataType:"json",
             data:{
-                "type":type,
-                "value":value,
-                "channel":"alipay_pc_direct",
-                "amount":1000
+                "type":type
             },
-            async:false,
-            success:function (data) {
-                pingpp.createPayment(data, function(result, err){
-                    console.log(result);
-                    console.log(err.msg);
-                    console.log(err.extra);
-                    if (result == "success") {
-
-                        // 只有微信公众账号 wx_pub 支付成功的结果会在这里返回，其他的支付结果都会跳转到 extra 中对应的 URL。
-                    } else if (result == "fail") {
-                        // charge 不正确或者微信公众账号支付失败时会在此处返回
-                    } else if (result == "cancel") {
-                        // 微信公众账号支付取消支付
+            success:function (msg) {
+                if(msg){
+                    var sure = confirm("确认购买?")
+                    if(!sure){
+                        return false
                     }
-                });
+                    $.ajax({
+                        type:"post",
+                        url:"creatCharge",
+                        dataType:"json",
+                        data:{
+                            "type":type,
+                            "value":value,
+                            "channel":"alipay_pc_direct",
+                            "amount":1000
+                        },
+                        async:false,
+                        success:function (data) {
+                            pingpp.createPayment(data, function(result, err){
+                                console.log(result);
+                                console.log(err.msg);
+                                console.log(err.extra);
+                                if (result == "success") {
 
+                                    // 只有微信公众账号 wx_pub 支付成功的结果会在这里返回，其他的支付结果都会跳转到 extra 中对应的 URL。
+                                } else if (result == "fail") {
+                                    // charge 不正确或者微信公众账号支付失败时会在此处返回
+                                } else if (result == "cancel") {
+                                    // 微信公众账号支付取消支付
+                                }
+                            });
+
+                        }
+                    })
+                }//-----if
+                else {
+                    alert("与当前拥有的套餐不一样，请更换套餐类型")
+                }
             }
         })
+
     });
 
 
