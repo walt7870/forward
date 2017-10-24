@@ -590,33 +590,26 @@ public class CustomerController {
         result = getMyGalleryLocal(name);
         return wrapResponse(result).toJSONString();
     }
-
-//    @RequestMapping("addGallery")
-//    @ResponseBody
-//    public boolean addGallery(String libraryName, HttpSession session) {
-//        if (null == libraryName || "".equals(libraryName)) {
-//            return false;
-//        }
-//        String name = (String) session.getAttribute("name");
-//        if (null != name) {
-//            if (!libraryService.checkLibrary(name, libraryName)) {
-//                LibraryKey libraryKey = new LibraryKey();
-//                libraryKey.setUserName(name);
-//                libraryKey.setLibraryName(libraryName);
-//                libraryService.insert(libraryKey);
-//            }
-//        }
-//        return false;
-//    }
-
-//    //删除图库
-//    @RequestMapping("deleteGallery")
-//    @ResponseBody
-//    public boolean deleteGallery(String libraryName) {
-//
-//        return false;
-//    }
-
+    //验证两次套餐是否相同
+    @RequestMapping("checkType")
+    @ResponseBody
+    public boolean checkType(HttpSession session,String type){
+        logger.info("checkType Start");
+      String name=(String) session.getAttribute("name");
+      if(name!=null&&!"".equals(name)) {
+          SetMeal meal = setMealService.findByName(name);
+          if (meal == null) {
+              return true;
+          } else {
+              if (meal.getContype().equals(type)) {
+                return  true;
+              }else{
+                  return false;
+              }
+          }
+      }
+      return  false;
+    }
 
 
     private boolean setMeal(  String type,  int value,String name) {
@@ -836,7 +829,7 @@ public class CustomerController {
         logger.info("create charge");
         String name=(String) session.getAttribute("name");
         Charge charge=null;
-        if(name!=null&&!"".equals("")){
+        if(name!=null&&!"".equals(name)){
             charge=PayUtil.createCharge(1000,"alipay_pc_direct");
             OrderInfo orderInfo=new OrderInfo();
             orderInfo.setAmount(BigDecimal.valueOf(charge.getAmount()*1.0/100));
