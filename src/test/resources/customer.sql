@@ -40,6 +40,14 @@ create table log
   time DATETIME
 )engine=innodb default charset=utf8;
 
+drop table if exists operation_log;
+create table operation_log
+(
+  id int AUTO_INCREMENT PRIMARY KEY ,
+  operator varchar(32) not null,
+  content varchar(32) not null,
+  time DATETIME
+)engine=innodb default charset=utf8;
 
 drop table if exists library;
 create table library
