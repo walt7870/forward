@@ -221,8 +221,8 @@
                 </div>
                 <div class="modal-footer">
                     <div align="center">
-                        <button type="button" class="btn btn-info" data-dismiss="modal">关闭</button>
                         <input type="button" class="btn btn-info" id="submit" value="提交"/>
+                        <button type="button" class="btn btn-info" data-dismiss="modal">关闭</button>
                     </div>
                     <div align="center"><span id="msg" class="text-danger"></span></div>
                 </div>
@@ -467,6 +467,7 @@
             })
         }
     })
+
     $("input:radio[name='contype']").change(function () {
         var selRow = $('#tb_departments').bootstrapTable('getSelections');
         var temp=selRow[0];
@@ -476,8 +477,8 @@
         $("#endTime").removeAttr("readonly")
         var type = $("input:radio[name='contype']:checked").val();
         if (type == "date") {
-            $("#beginTime").attr('value', changeDateFormat(temp.beginTime));
-            $("#endTime").attr('value', changeDateFormat(temp.endTime));
+            //$("#beginTime").attr('value', changeDateFormat(temp.beginTime));
+            //$("#endTime").attr('value', changeDateFormat(temp.endTime));
             $("#totalTimes").attr("readonly", "readonly");
             $("#leftTimes").attr("readonly", 'readonly');
             $("#totalTimes").attr('value', null);
@@ -492,6 +493,7 @@
 
         }
     });
+
     $("#endTime").change(function () {
         $("#updateMsg").text("");
 
@@ -558,28 +560,34 @@
     $("#addBtn").click(function () {
         //显示模态框
         $("#myModal1").modal("show");
-    });
-    $("input:radio[name='contype']").change(function () {
-        $("#totalTimes1").removeAttr("readonly")
-        $("#leftTimes1").removeAttr("readonly")
-        $("#beginTime1").removeAttr("readonly")
-        $("#endTime1").removeAttr("readonly")
-        var type = $("input:radio[name='contype']:checked").val();
+        $("#userName1").val("");
+        $("#beginTime1").val("");
+        $("#endTime1").val("");
+        $("#totalTimes1").val("");
+        $("#leftTimes1").val("");
         $("#msg").text("");
-        if (type == "date") {
-            $("#totalTimes1").attr("readonly", "readonly")
-            $("#leftTimes1").attr("readonly", "readonly")
-            //console.log("xixixi")
-
-        } else if (type == "times") {
-            $("#beginTime1").attr("readonly", "readonly")
-            $("#endTime1").attr("readonly", "readonly")
-
-        } else {
-            flag = false;
-            $("#msg").text("未选中套餐类型");
-        }
     });
+//    $("input:radio[name='contype']").change(function () {
+//        $("#totalTimes1").removeAttr("readonly")
+//        $("#leftTimes1").removeAttr("readonly")
+//        $("#beginTime1").removeAttr("readonly")
+//        $("#endTime1").removeAttr("readonly")
+//        var type = $("input:radio[name='contype']:checked").val();
+//        $("#msg").text("");
+//        if (type == "date") {
+//            $("#totalTimes1").attr("readonly", "readonly")
+//            $("#leftTimes1").attr("readonly", "readonly")
+//            //console.log("xixixi")
+//
+//        } else if (type == "times") {
+//            $("#beginTime1").attr("readonly", "readonly")
+//            $("#endTime1").attr("readonly", "readonly")
+//
+//        } else {
+//            flag = false;
+//            $("#msg").text("未选中套餐类型");
+//        }
+//    });
     $("#endTime1").change(function () {
         $("#msg").text("");
 

@@ -73,7 +73,7 @@ public class PayUtil {
 
         chargeMap.put("body", "xxxx");
         //流水号
-        String orderNo = new Date().getTime() + "";
+        String orderNo = String.valueOf(System.currentTimeMillis());
         chargeMap.put("order_no", orderNo);
         //设置支付渠道
         chargeMap.put("channel", channel);

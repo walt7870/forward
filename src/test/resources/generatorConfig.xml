@@ -43,6 +43,7 @@
         <!--<table tableName="set_meal"></table>-->
         <!--<table tableName="library"></table>-->
         <!--<table tableName="log"></table>-->
-        <table tableName="order_info"></table>
+        <!--<table tableName="order_info"></table>-->
+        <table tableName="operation_log"></table>
     </context>
 </generatorConfiguration>
