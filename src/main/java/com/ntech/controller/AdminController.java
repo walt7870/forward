@@ -2,9 +2,11 @@ package com.ntech.controller;
 
 import com.ntech.model.Customer;
 import com.ntech.model.Log;
+import com.ntech.model.OperationLog;
 import com.ntech.model.SetMeal;
 import com.ntech.service.inf.ICustomerService;
 import com.ntech.service.inf.ILogService;
+import com.ntech.service.inf.IOperationLogService;
 import com.ntech.service.inf.ISetMealService;
 import com.ntech.util.SHAencrypt;
 import org.apache.log4j.Logger;
@@ -34,6 +36,8 @@ public class AdminController {
     private ICustomerService customerService;
     @Autowired
     private ILogService logService;
+    @Autowired
+    private IOperationLogService operationLogService;
 
 
     //跳转登陆
@@ -62,8 +66,8 @@ public class AdminController {
     //跳转到首页
     @RequestMapping("index")
     public String IndexJump(HttpSession session) {
-        String name= (String) session.getAttribute("admin");
-        if(null!=name&&!"".equals(name)&&name.equals("sessionStatus")){
+        String adminFlag= (String) session.getAttribute("admin");
+        if(null!=adminFlag&&!"".equals(adminFlag)&&adminFlag.equals("sessionStatus")){
             return "admin/customerManager";
         }
         return "admin/login-admin";
@@ -72,13 +76,14 @@ public class AdminController {
     @RequestMapping("logout")
     public String logout(HttpSession session) {
         session.removeAttribute("admin");
+        session.removeAttribute("adminName");
         return "admin/login-admin";
     }
     //跳转到首页
     @RequestMapping("logManager")
     public String LogJump(HttpSession session) {
-        String name= (String) session.getAttribute("admin");
-        if(null!=name&&!"".equals(name)&&name.equals("sessionStatus")){
+        String adminFlag= (String) session.getAttribute("admin");
+        if(null!=adminFlag&&!"".equals(adminFlag)&&adminFlag.equals("sessionStatus")){
             return "admin/logManager";
         }
         return "admin/login-admin";
@@ -86,8 +91,8 @@ public class AdminController {
     //跳转到首页
     @RequestMapping("mealManager")
     public String setMealJump(HttpSession session) {
-        String name= (String) session.getAttribute("admin");
-        if(null!=name&&!"".equals(name)&&name.equals("sessionStatus")){
+        String adminFlag= (String) session.getAttribute("admin");
+        if(null!=adminFlag&&!"".equals(adminFlag)&&adminFlag.equals("sessionStatus")){
             return "admin/mealManager";
         }
         return "admin/login-admin";
@@ -117,6 +122,7 @@ public class AdminController {
         result = customerService.loginCheck(name, password);
         if (result) {
             session.setAttribute("admin", "sessionStatus");
+            session.setAttribute("adminName", name);
         }
         return result;
     }
@@ -144,40 +150,59 @@ public class AdminController {
     //添加用户
     @RequestMapping("/addCustomer")
     @ResponseBody
-    public boolean addCustomer(String userName,String password,String active,String email) throws MessagingException {
-        Customer customer=new Customer();
-        if(userName!=null&&password!=null){
-            customer.setName(userName);
+    public boolean addCustomer(String userName,String password,String active,String email,HttpSession session) throws MessagingException {
+        String adminFlag =(String) session.getAttribute("admin");
+        String adminName =(String)session.getAttribute("adminName");
+        if(adminFlag.equals("sessionStatus")){
+            Customer customer=new Customer();
+            if(userName!=null&&password!=null){
+                customer.setName(userName);
 //            customer.setToken(token);
-            customer.setPassword(SHAencrypt.encryptSHA(password));
-            customer.setEmail(email);
-            customer.setContype("user");
-            customer.setRegtime(new Date());
-            customer.setFaceNumber(0);
-            if(active.equals("active")){
-                customer.setActive(1);
-            }else{
-                customer.setActive(0);
-            }
-            if(customerService.add(customer)==1){
-                return  true;
+                customer.setPassword(SHAencrypt.encryptSHA(password));
+                customer.setEmail(email);
+                customer.setContype("user");
+                customer.setRegtime(new Date());
+                customer.setFaceNumber(0);
+                if(active.equals("active")){
+                    customer.setActive(1);
+                }else{
+                    customer.setActive(0);
+                }
+                if(customerService.add(customer)==1){
+                    String log="用户管理：添加用户 "+userName;
+                    operateLog(adminName,log);
+                    return  true;
+                }
             }
             return false;
+        }else{
+            return false;
         }
-        return false;
+    }
+
+    //插入操作日志记录
+    private void operateLog(String operator,String log) {
+        OperationLog operationLog =new OperationLog();
+        operationLog.setOperator(operator);
+        operationLog.setContent(log);
+        operationLog.setTime(new Date());
+        operationLogService.add(operationLog);
     }
 
     //修改密码
     @RequestMapping("updatePassword")
     public ModelAndView updatePassword(HttpSession session, String name, String password) {
-        String adminName = (String) session.getAttribute("admin");
+        String adminFlag = (String) session.getAttribute("admin");
+        String adminName =(String)session.getAttribute("adminName");
         ModelAndView modelAndView = new ModelAndView();
-        if (adminName.equals("ntech")) {
+        if (adminFlag.equals("sessionStatus")) {
             Customer customer = customerService.findByName(name);
             if (customer != null) {
                 //密码加密
                 customer.setPassword(SHAencrypt.encryptSHA(password));
                 if (customerService.modify(customer) == 1) {
+                    String log="更改用户 "+name+" 的密码";
+                    operateLog(adminName,log);
                     logger.info("updatePassword succeed");
                     modelAndView.addObject("msg", "更改密码成功");
                 }
@@ -198,27 +223,29 @@ public class AdminController {
     public boolean updateCustomer(HttpSession session,String
             userName,String contype,String active,String email,
                                   String token,String regtime) {
-        String admin = (String) session.getAttribute("admin");
-        Customer customer=new Customer();
-        customer.setName(userName);
-        if(active.equals("active")){
-            customer.setActive(1);
-        }else if(active.equals("unactive")){
-            customer.setActive(0);
-        }
-        if(contype!=null&&!contype.equals("")){
-            customer.setContype(contype);
-        }
-        customer.setEmail(email);
-        customer.setToken(token);
-        if(regtime!=null){
-            SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd");
-            try{
-                customer.setRegtime(format.parse(regtime));
-            }catch (Exception e){
-                throw  new RuntimeException(e);
+        String adminFlag = (String) session.getAttribute("admin");
+        String adminName =(String) session.getAttribute("adminName");
+        if (adminFlag.equals("sessionStatus")) {
+            Customer customer=new Customer();
+            customer.setName(userName);
+            if(active.equals("active")){
+                customer.setActive(1);
+            }else if(active.equals("unactive")){
+                customer.setActive(0);
             }
-        }
+            if(contype!=null&&!contype.equals("")){
+                customer.setContype(contype);
+            }
+            customer.setEmail(email);
+            customer.setToken(token);
+            if(regtime!=null){
+                SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd");
+                try{
+                    customer.setRegtime(format.parse(regtime));
+                }catch (Exception e){
+                    throw  new RuntimeException(e);
+                }
+            }
 //        ModelAndView mav = new ModelAndView();
 //        //根据session判断可否操作
 //        if (admin.equals("ntech")) {
@@ -232,10 +259,14 @@ public class AdminController {
 //        mav.setViewName("error");
 //        logger.info("customer update fail");
 //        return mav;
-        if(customerService.modify(customer)==1){
-            logger.info("update customer succeed"+customer.getName());
-            return true;
+            if(customerService.modify(customer)==1){
+                logger.info("update customer succeed"+customer.getName());
+                String log ="用户管理：修改用户 "+userName+" 的信息";
+                operateLog(adminName,log);
+                return true;
+            }
         }
+
         return false;
     }
 
@@ -243,18 +274,19 @@ public class AdminController {
     @RequestMapping("findCustomers")
     @ResponseBody
     public JSONObject findCustomers(HttpSession session,int limit,int offset,String name) {
-        String admin = (String) session.getAttribute("admin");
-
+        String adminFlag = (String) session.getAttribute("admin");
         JSONObject jsonObject=new JSONObject();
-        if(name.equals("")){
+        if (adminFlag.equals("sessionStatus")) {
+            if(name.equals("")){
 
-            jsonObject.put("rows",customerService.findPage(limit,offset));
-            jsonObject.put("total",customerService.totalCount());
-        }else{
-            List<Customer> list=new ArrayList<Customer>();
-            list=customerService.findLikeName(name);
-            jsonObject.put("rows",list);
-            jsonObject.put("total",list.size());
+                jsonObject.put("rows",customerService.findPage(limit,offset));
+                jsonObject.put("total",customerService.totalCount());
+            }else{
+                List<Customer> list=new ArrayList<Customer>();
+                list=customerService.findLikeName(name);
+                jsonObject.put("rows",list);
+                jsonObject.put("total",list.size());
+            }
         }
         return jsonObject;
     }
@@ -263,7 +295,22 @@ public class AdminController {
     @RequestMapping("deleteCustomers")
     @ResponseBody
     public boolean deleteCustomerByName(HttpSession session, String[] nameSelected) {
-        String admin = (String) session.getAttribute("admin");
+        String adminFlag = (String) session.getAttribute("admin");
+        String adminName = (String) session.getAttribute("adminName");
+        if(adminFlag.equals("sessionStatus")){
+            if(nameSelected.length>0) {
+                for (int i = 0; i < nameSelected.length; i++) {
+                    if (customerService.findByName(nameSelected[i]) != null) {
+                        logger.info("delete " + nameSelected[i]);
+                        customerService.deleteByName(nameSelected[i]);
+                        String log ="用户管理：删除用户 "+nameSelected[i];
+                        operateLog(adminName,log);
+                    }
+                }
+                logger.info("delete customers success");
+                return true;
+            }
+        }
 //        ModelAndView mav = new ModelAndView();
 //        if (admin.equals("ntech")) {
 //            if (customerService.findByName(name) != null) {
@@ -274,29 +321,24 @@ public class AdminController {
 //            session.setAttribute("customerList", customerService.findAll());
 //            mav.setViewName("customer");
 //            return mav;
-        if(nameSelected.length>0) {
-            for (int i = 0; i < nameSelected.length; i++) {
-                if (customerService.findByName(nameSelected[i]) != null) {
-                    logger.info("delete " + nameSelected[i]);
-                    customerService.deleteByName(nameSelected[i]);
-                }
-            }
-            logger.info("delete customers success");
-            return true;
-        }
         return  false;
     }
 
     // 根据用户名删除用户和用户订单信息
     public Boolean deleteCustomerAndMealByName(HttpSession session, String name) {
-        String admin = (String) session.getAttribute("admin");
-        if (admin.equals("ntech")) {
+        String adminFlag = (String) session.getAttribute("admin");
+        String adminName = (String) session.getAttribute("adminName");
+        if (adminFlag.equals("sessionStatus")) {
             if (customerService.findByName(name) != null) {
 
                 customerService.deleteByName(name);
+                String log ="用户管理：删除用户 "+name;
+                operateLog(adminName,log);
             }
             if (setMealService.findByName(name) != null) {
                 setMealService.delete(name);
+                String log ="订单管理：删除用户 "+name+" 的订单信息";
+                operateLog(adminName,log);
             }
             logger.info("deleteCustomerAll succeed ");
             return true;
@@ -309,9 +351,9 @@ public class AdminController {
     //查询日志
     @RequestMapping("findLogByName")
     public ModelAndView findLogByName(HttpSession session, String name) {
-        String admin = (String) session.getAttribute("admin");
+        String adminFlag = (String) session.getAttribute("admin");
         ModelAndView mav = new ModelAndView();
-        if (admin.equals("ntech")) {
+        if (adminFlag.equals("sessionStatus")) {
 
             List<Log> list = logService.findByName(name);
             if (list != null) {
@@ -334,9 +376,9 @@ public class AdminController {
     @ResponseBody
     public JSONObject findLogs(HttpSession session, int limit,int offset,String name,
                                String type,String start,String over)  {
-        String admin= (String) session.getAttribute("admin");
+        String adminFlag= (String) session.getAttribute("admin");
         JSONObject jsonObject=new JSONObject();
-        if(!"".equals(admin)&&admin!=null&&admin.equals("sessionStatus")){
+        if(!"".equals(adminFlag)&&adminFlag!=null&&adminFlag.equals("sessionStatus")){
             if("".equals(name)){
                 name=null;
             }
@@ -364,9 +406,9 @@ public class AdminController {
     //查询所有订单
     @RequestMapping("findSetMeals")
     public ModelAndView findSetMeals(HttpSession session) {
-        String admin = (String) session.getAttribute("admin");
+        String adminFlag = (String) session.getAttribute("admin");
         ModelAndView mav = new ModelAndView();
-        if (admin.equals("ntech")) {
+        if (adminFlag.equals("sessionStatus")) {
             logger.info("findSetMeals succeed");
             session.setAttribute("mealList", setMealService.findAll());
             mav.setViewName("meal");
@@ -380,7 +422,7 @@ public class AdminController {
     @RequestMapping("findMeals")
     @ResponseBody
     public JSONObject testMeals(HttpSession session,int limit,int offset,String name,String type) {
-        String admin = (String) session.getAttribute("admin");
+        String adminFlag = (String) session.getAttribute("admin");
         if("".equals(name)){
             name=null;
         }
@@ -389,7 +431,7 @@ public class AdminController {
         }
         JSONObject jsonObject = new JSONObject();
         //logger.info("findSetMeals succeed");
-        if(!"".equals(admin)&&null!=admin&&admin.equals("sessionStatus")){
+        if(!"".equals(adminFlag)&&null!=adminFlag&&adminFlag.equals("sessionStatus")){
             List<SetMeal> list=setMealService.findByConditions(offset,limit,name,type);
             jsonObject.put("rows",list);
             jsonObject.put("total",setMealService.findCount(name,type));
@@ -406,9 +448,9 @@ public class AdminController {
     //根据姓名查询订单
     @RequestMapping("findSetMealByName")
     public ModelAndView findSetMealByName(HttpSession session, String name) {
-        String admin = (String) session.getAttribute("admin");
+        String adminFlag = (String) session.getAttribute("admin");
         ModelAndView mav = new ModelAndView();
-        if (admin.equals("ntech")) {
+        if (adminFlag.equals("sessionStatus")) {
             logger.info("findSetMeals succeed");
             ArrayList<SetMeal> mealList = new ArrayList<SetMeal>();
             mealList.add(setMealService.findByName(name));
@@ -425,90 +467,108 @@ public class AdminController {
     @ResponseBody
     public boolean updateSetMeal(String id, String userName, String contype,
                                  String beginTime, String endTime, String totalTimes,
-                                 String leftTimes, String enable) {
-        SetMeal setMeal = new SetMeal();
-        try {
-            //给对象赋值
-            setMeal.setId(Integer.parseInt(id));
-            setMeal.setUserName(userName);
-            setMeal.setContype(contype);
+                                 String leftTimes, String enable,HttpSession session) {
+        String adminFlag =(String)session.getAttribute("admin");
+        String adminName =(String)session.getAttribute("adminName");
+        if(adminFlag.equals("sessionStatus")){
+            SetMeal setMeal = new SetMeal();
+            try {
+                //给对象赋值
+                setMeal.setId(Integer.parseInt(id));
+                setMeal.setUserName(userName);
+                setMeal.setContype(contype);
 
-            //字符串向时间类型进行转换
-            if (contype.equals("date")) {
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                setMeal.setBeginTime(format.parse(beginTime));
-                setMeal.setEndTime(format.parse(endTime));
+                //字符串向时间类型进行转换
+                if (contype.equals("date")) {
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                    setMeal.setBeginTime(format.parse(beginTime));
+                    setMeal.setEndTime(format.parse(endTime));
 
-                setMeal.setLeftTimes(null);
-                setMeal.setTotalTimes(null);
-            } else if (contype.equals("times")) {
-                setMeal.setBeginTime(null);
-                setMeal.setEndTime(null);
-                setMeal.setTotalTimes(Integer.parseInt(totalTimes));
-                setMeal.setLeftTimes(Integer.parseInt(leftTimes));
-            }
-            if (enable.equals("able")) {
-                setMeal.setEnable(1);
-            } else if (enable.equals("enable")) {
-                setMeal.setEnable(0);
-            }
+                    setMeal.setLeftTimes(null);
+                    setMeal.setTotalTimes(null);
+                } else if (contype.equals("times")) {
+                    setMeal.setBeginTime(null);
+                    setMeal.setEndTime(null);
+                    setMeal.setTotalTimes(Integer.parseInt(totalTimes));
+                    setMeal.setLeftTimes(Integer.parseInt(leftTimes));
+                }
+                if (enable.equals("able")) {
+                    setMeal.setEnable(1);
+                } else if (enable.equals("enable")) {
+                    setMeal.setEnable(0);
+                }
 //            System.out.println(setMeal.toString());
-            setMealService.modify(setMeal);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
+                setMealService.modify(setMeal);
+                String log ="套餐管理：修改用户 "+userName+" 的套餐信息";
+                operateLog(adminName,log);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
 
-            return true;
+                return true;
+            }
         }
+        return false;
     }
     @RequestMapping("addMeal")
     @ResponseBody
     public boolean addMeal(String userName, String contype,
                            String beginTime, String endTime, String totalTimes,
-                           String leftTimes, String enable){
+                           String leftTimes, String enable,HttpSession session){
+        String adminFlag =(String)session.getAttribute("admin");
+        String adminName =(String)session.getAttribute("adminName");
         SetMeal setMeal = new SetMeal();
-        try {
-            //给对象赋值
-            setMeal.setUserName(userName);
-            setMeal.setContype(contype);
-            //字符串向时间类型进行转换
-            if (contype.equals("date")) {
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                setMeal.setBeginTime(format.parse(beginTime));
-                setMeal.setEndTime(format.parse(endTime));
-            } else if (contype.equals("times")) {
-                setMeal.setTotalTimes(Integer.parseInt(totalTimes));
-                setMeal.setLeftTimes(Integer.parseInt(leftTimes));
-            }
-            if (enable.equals("able")) {
-                setMeal.setEnable(1);
-            } else if (enable.equals("enable")) {
-                setMeal.setEnable(0);
-            }
+        if(adminFlag.equals("sessionStatus")){
+            try {
+                //给对象赋值
+                setMeal.setUserName(userName);
+                setMeal.setContype(contype);
+                //字符串向时间类型进行转换
+                if (contype.equals("date")) {
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                    setMeal.setBeginTime(format.parse(beginTime));
+                    setMeal.setEndTime(format.parse(endTime));
+                } else if (contype.equals("times")) {
+                    setMeal.setTotalTimes(Integer.parseInt(totalTimes));
+                    setMeal.setLeftTimes(Integer.parseInt(leftTimes));
+                }
+                if (enable.equals("able")) {
+                    setMeal.setEnable(1);
+                } else if (enable.equals("enable")) {
+                    setMeal.setEnable(0);
+                }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
 
-            if(setMealService.add(setMeal)){
-                return  true;
+                if(setMealService.add(setMeal)){
+                    String log ="套餐管理：新增用户 "+userName+" 的套餐信息";
+                    operateLog(adminName,log);
+                    return  true;
+                }
             }
-            return  false;
         }
+        return  false;
     }
     //批量删除选择的订单
     @RequestMapping("deleteMealByName")
     @ResponseBody
-    public boolean deleteMealByName(String[] selectedName) {
+    public boolean deleteMealByName(String[] selectedName,HttpSession session) {
         // System.out.println("-------------------");
-        if (selectedName != null) {
-            for (int i = 0; i < selectedName.length; i++) {
-                setMealService.delete(selectedName[i]);
+        String adminFlag =(String)session.getAttribute("admin");
+        String adminName =(String)session.getAttribute("adminName");
+        if(adminFlag.equals("sessionStatus")){
+            if (selectedName != null) {
+                for (int i = 0; i < selectedName.length; i++) {
+                    setMealService.delete(selectedName[i]);
+                    String log ="套餐管理：删除用户 "+selectedName[i]+" 的套餐信息";
+                    operateLog(adminName,log);
+                }
+                logger.info("deleteMeal by selectedName[] succeed");
+                return true;
             }
-            logger.info("deleteMeal by selectedName[] succeed");
-            return true;
         }
-
-        return true;
+        return false;
     }
 }
