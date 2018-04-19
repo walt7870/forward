@@ -57,8 +57,11 @@
       <groupId>Pingplusplus</groupId>
       <artifactId>pingpp-java</artifactId>
       <version>2.2.4</version>
-      <!--请将 VERSION 换成 SDK 对应的版本号，如：2.2.4-->
-      <type>jar</type>
+      <!--&lt;!&ndash;请将 VERSION 换成 SDK 对应的版本号，如：2.2.4&ndash;&gt;-->
+      <!--<type>jar</type>-->
+      <scope>system</scope>
+      <systemPath>${pom.basedir}/lib/pingpp-java-2.2.4.jar</systemPath>
+      <!--<type>jar</type>-->
     </dependency>
     <!-- 添加junit4依赖 -->
     <dependency>
@@ -68,6 +71,20 @@
       <!-- 指定范围，在测试时才会加载 -->
       <scope>test</scope>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.10</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.6.2</version>
+    </dependency>
+
 
     <!-- 添加spring核心依赖 -->
     <dependency>
@@ -197,12 +214,6 @@
       <version>2.4</version>
     </dependency>
 
-    <!--<dependency>-->
-    <!--<groupId>commons-codec</groupId>-->
-    <!--<artifactId>commons-codec</artifactId>-->
-    <!--<version>1.9</version>-->
-    <!--</dependency>-->
-
     <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
@@ -241,7 +252,6 @@
       <version>3.2.2</version>
     </dependency>
 
-
     <!--<dependency>-->
     <!--<groupId>org.mybatis.generator</groupId>-->
     <!--<artifactId>mybatis-generator-maven-plugin</artifactId>-->
@@ -253,15 +263,50 @@
 
   <build>
     <finalName>forward</finalName>
+
     <plugins>
+      <!--<plugin>-->
+        <!--<artifactId>maven-dependency-plugin</artifactId>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<phase>install</phase>-->
+            <!--<goals>-->
+              <!--<goal>copy-dependencies</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--<outputDirectory>${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib</outputDirectory>-->
+            <!--</configuration>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
+          <includes>
+            <include>${project.basedir}/lib/*.jar</include>
+          </includes>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <configuration>
+          <webResources>
+            <resource>
+              <directory>lib/</directory>
+              <targetPath>WEB-INF/lib</targetPath>
+              <includes>
+                <include>**/*.jar</include>
+              </includes>
+            </resource>
+          </webResources>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 
